@@ -1,0 +1,21 @@
+{
+  "servers": {
+     "as-help": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help:ro",
+        "-v",
+        "ashelp-data:/data",
+        "-e",
+        "AS_HELP_ROOT=/data/help",
+        "-e",
+        "AS_HELP_FORCE_REBUILD=false",
+        "ghcr.io/YOUR_USERNAME/as-help:latest"
+      ]
+    } 
+  }
+}

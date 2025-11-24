@@ -65,7 +65,7 @@ Physical View
 └── <Config>
     └── <Hardware>
         └── mappView
-            └── 16by9           # Resolution Folder
+            └── MainVisu        # Visualization Folder
                 ├── PageName    # All bindings for the page go here
                 │   ├── PageName.binding
                 │   ├── PageName.eventbinding
@@ -74,11 +74,6 @@ Physical View
                     ├── DialogName.binding
                     └── DialogName.eventbinding
 ```
-
-### PLC Logic (`visu` Task)
-- **Location:** `Logical/visu/`
-- **Purpose:** Contains PLC-side logic specific to the HMI (e.g., session management, data aggregation, view control logic).
-- **Structure:** Standard Automation Studio task (`Main.st`, `Types.typ`, `Variables.var`).
 
 ## File Relationships & XML Structure
 
