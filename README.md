@@ -45,7 +45,9 @@ Reusable prompt templates for common B&R development tasks:
 
 Model Context Protocol servers for extended functionality:
 
-- **[AS Help Server](./copilot/mcp/as-help/)** - Search and retrieve B&R Automation Studio help documentation
+### AS Help MCP:
+- **[AS Help MCP in Copilot](./copilot/mcp/as-help/)** - Search and retrieve B&R Automation Studio help documentation 
+- GitHub Repository: **[as-help-mcp](https://github.com/BRDK-GitHub/as-help-mcp)** - Link to the GitHub repository
 
 [📚 More about MCP Servers](./copilot/mcp/README.md)
 
