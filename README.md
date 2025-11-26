@@ -59,6 +59,12 @@ Curated resource collections for specific scenarios:
 
 [📚 More about Collections](./copilot/collections/README.md)
 
+## Tools
+
+Utility scripts and helper tools:
+
+- **[Copilot Wrapper](./tools/README.md)** - PowerShell wrapper for handling SSL/TLS in corporate environments
+
 ## Documentation
 
 - **[BRDK Coding Guidelines](./docs/BRDK_Coding_Guideline.md)** - Comprehensive B&R coding standards
