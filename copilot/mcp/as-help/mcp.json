@@ -14,7 +14,7 @@
         "AS_HELP_ROOT=/data/help",
         "-e",
         "AS_HELP_FORCE_REBUILD=false",
-        "ghcr.io/YOUR_USERNAME/as-help:latest"
+        "ghcr.io/brdk-github/as-help-mcp:latest"
       ]
     } 
   }

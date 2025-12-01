@@ -56,7 +56,7 @@ For example: `C:\BRAutomation\AS412\Help-en\Data`
         "AS_HELP_ROOT=/data/help",
         "-e",
         "AS_HELP_FORCE_REBUILD=false",
-        "ghcr.io/YOUR_USERNAME/as-help:latest"  // ⬅️ UPDATE WITH ACTUAL IMAGE
+        "ghcr.io/brdk-github/as-help-mcp:latest"  // ⬅️ UPDATE WITH ACTUAL IMAGE
       ]
     }
   }
@@ -81,10 +81,6 @@ Replace `C:\\BRAutomation\\AS412\\Help-en\\Data` with your actual AS help path:
 ```
 
 **Note:** Use double backslashes (`\\`) in Windows paths within JSON.
-
-#### Update Docker Image
-
-Replace `ghcr.io/YOUR_USERNAME/as-help:latest` with the actual Docker image location.
 
 #### Optional: Force Index Rebuild
 
@@ -125,7 +121,7 @@ If configured correctly, Copilot will have access to search your Automation Stud
         "AS_HELP_ROOT=/data/help",                         // Help root path
         "-e",                                               // Environment variable
         "AS_HELP_FORCE_REBUILD=false",                     // Force index rebuild
-        "ghcr.io/YOUR_USERNAME/as-help:latest"             // Docker image
+        "docker pull ghcr.io/brdk-github/as-help-mcp:latest"             // Docker image
       ]
     }
   }
@@ -256,7 +252,7 @@ If you need to build the Docker image yourself, refer to the source repository f
 To update to the latest version:
 
 ```bash
-docker pull ghcr.io/YOUR_USERNAME/as-help:latest
+docker pull docker pull ghcr.io/brdk-github/as-help-mcp:latest
 ```
 
 ## Related Resources
