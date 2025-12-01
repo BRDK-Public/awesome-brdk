@@ -56,7 +56,7 @@ For example: `C:\BRAutomation\AS412\Help-en\Data`
         "AS_HELP_ROOT=/data/help",
         "-e",
         "AS_HELP_FORCE_REBUILD=false",
-        "ghcr.io/brdk-github/as-help-mcp:latest"  // ⬅️ UPDATE WITH ACTUAL IMAGE
+        "ghcr.io/brdk-github/as-help-mcp:latest"
       ]
     }
   }
