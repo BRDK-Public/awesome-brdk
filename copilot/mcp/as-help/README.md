@@ -49,7 +49,7 @@ For example: `C:\BRAutomation\AS412\Help-en\Data`
         "--rm",
         "-i",
         "-v",
-        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help:ro",  // ⬅️ UPDATE THIS PATH
+        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help",  // ⬅️ UPDATE THIS PATH
         "-v",
         "ashelp-data:/data",
         "-e",
@@ -71,13 +71,11 @@ Replace `C:\\BRAutomation\\AS412\\Help-en\\Data` with your actual AS help path:
 
 ```jsonc
 // Example for AS 4.12
-"C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help:ro"
+"C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help"
 
-// Example for AS 4.11
-"C:\\BRAutomation\\AS411\\Help-en\\Data:/data/help:ro"
+// Example for AS 6
+"C:\\Program Files (x86)\\BRAutomation\\AS6\\Help-en\\Data:/data/help"
 
-// Example for different drive
-"D:\\BRAutomation\\AS412\\Help-en\\Data:/data/help:ro"
 ```
 
 **Note:** Use double backslashes (`\\`) in Windows paths within JSON.
@@ -110,18 +108,18 @@ If configured correctly, Copilot will have access to search your Automation Stud
     "as-help": {
       "command": "docker",
       "args": [
-        "run",                                              // Run Docker container
-        "--rm",                                             // Remove container after exit
-        "-i",                                               // Interactive mode
-        "-v",                                               // Mount volume
-        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help:ro",  // Help docs (read-only)
-        "-v",                                               // Mount volume
-        "ashelp-data:/data",                               // Persistent data volume
-        "-e",                                               // Environment variable
-        "AS_HELP_ROOT=/data/help",                         // Help root path
-        "-e",                                               // Environment variable
-        "AS_HELP_FORCE_REBUILD=false",                     // Force index rebuild
-        "docker pull ghcr.io/brdk-github/as-help-mcp:latest"             // Docker image
+        "run",                                                // Run Docker container
+        "--rm",                                               // Remove container after exit
+        "-i",                                                 // Interactive mode
+        "-v",                                                 // Mount volume
+        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help",  // Help docs 
+        "-v",                                                 // Mount volume
+        "ashelp-data:/data",                                  // Persistent data volume
+        "-e",                                                 // Environment variable
+        "AS_HELP_ROOT=/data/help",                            // Help root path
+        "-e",                                                 // Environment variable
+        "AS_HELP_FORCE_REBUILD=false",                        // Force index rebuild
+        "docker pull ghcr.io/brdk-github/as-help-mcp:latest"  // Docker image
       ]
     }
   }
@@ -217,15 +215,15 @@ To support multiple Automation Studio versions, you can create multiple MCP serv
       "command": "docker",
       "args": [
         // ... configuration for AS 4.12
-        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help:ro",
+        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help",
         // ...
       ]
     },
-    "as-help-411": {
+    "as-help-6": {
       "command": "docker",
       "args": [
-        // ... configuration for AS 4.11
-        "C:\\BRAutomation\\AS411\\Help-en\\Data:/data/help:ro",
+        // ... configuration for AS 6.x
+        "C:\\Program Files (x86)\\BRAutomation\\AS6\\Help-en\\Data:/data/help",
         // ...
       ]
     }

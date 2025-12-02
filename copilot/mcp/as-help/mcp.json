@@ -7,7 +7,7 @@
         "--rm",
         "-i",
         "-v",
-        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help:ro",
+        "C:\\BRAutomation\\AS412\\Help-en\\Data:/data/help",
         "-v",
         "ashelp-data:/data",
         "-e",
