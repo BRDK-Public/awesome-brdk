@@ -44,25 +44,29 @@ Copy the configuration from [`mcp.json`](./mcp.json) in this directory and add i
 ```jsonc
 {
   "servers": {
-    "as-help": {
+     "as-help": {
       "command": "docker",
       "args": [
         "run",
         "--rm",
         "-i",
         "-v",
-        "C:\\Program Files (x86)\\BRAutomation\\AS6\\Help-en\\Data:/data/help",
+        "C:\\Program Files (x86)\\BRAutomation\\AS6\\Help-en\\Data:/data/help:ro",
         "-v",
-        "ashelp-data:/data",
+        "ashelp-data:/data/db",
         "-e",
         "AS_HELP_ROOT=/data/help",
+        "-e",
+        "AS_HELP_DB_PATH=/data/db/.ashelp_search.db",
+        "-e",
+        "AS_HELP_METADATA_DIR=/data/db/.ashelp_metadata",
         "-e",
         "AS_HELP_FORCE_REBUILD=false",
         "-e",
         "AS_HELP_VERSION=6",
         "ghcr.io/brdk-github/as-help-mcp:latest"
       ]
-    }
+    } 
   }
 }
 ```
