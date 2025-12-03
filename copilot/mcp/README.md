@@ -11,6 +11,20 @@ Model Context Protocol (MCP) is an open standard that enables AI assistants to s
 - Integration with B&R-specific systems
 - Enhanced context for code generation
 
+## GitHub Container Registry (GHCR) Authentication
+
+Many of our MCP servers are distributed as Docker images via GitHub Container Registry. To use them, you need to authenticate Docker with GitHub.
+
+1.  Create a **Personal Access Token (Classic)** with `read:packages` scope.
+    *   Follow the guide here: [Creating a personal access token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic)
+    *   **Important:** Ensure your token has an expiration date set.
+
+2.  Authenticate Docker using your username and the token:
+    ```bash
+    docker login -u <YOUR_GITHUB_USERNAME> ghcr.io
+    ```
+    When prompted for the password, paste your Personal Access Token.
+
 ## Available MCP Servers
 
 ### [AS Help Server](./as-help/)
