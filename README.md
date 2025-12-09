@@ -49,6 +49,10 @@ Model Context Protocol servers for extended functionality:
 - **[AS Help MCP in Copilot](./copilot/mcp/as-help/)** - Search and retrieve B&R Automation Studio help documentation 
 - GitHub Repository: **[as-help-mcp](https://github.com/BRDK-GitHub/as-help-mcp)** - Link to the GitHub repository
 
+### AR ANSL MCP:
+- **[AR ANSL MCP in Copilot](./copilot/mcp/ar-ansl/)** - ANSL connection to a B&R PLC or the Simulator.
+- GitHub Repository: **[ar-ansl-mcp](https://github.com/BRDK-GitHub/ar-ansl-mcp)** - Link to the GitHub repository
+
 [📚 More about MCP Servers](./copilot/mcp/README.md)
 
 ## Collections
