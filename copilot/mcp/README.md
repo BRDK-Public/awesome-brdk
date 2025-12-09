@@ -25,27 +25,15 @@ Many of our MCP servers are distributed as Docker images via GitHub Container Re
     ```
     When prompted for the password, paste your Personal Access Token.
 
-## Available MCP Servers
-
-### [AS Help Server](./as-help/)
-
-Search and retrieve information from B&R Automation Studio help documentation.
-
-**Features:**
-- Full-text search of AS help content
-- Context-aware documentation retrieval
-- Parameter and function reference lookup
-- Integration with custom agents
-
-**Documentation:** [as-help/README.md](./as-help/README.md)
-
 ## 📖 How to Use MCP Servers
 
 ### Installation
 
 1. Navigate to the MCP server directory
 2. Follow the installation instructions in the server's README
-3. Configure the server in `.vscode/mcp.json`
+3. Start Docker Desktop 
+4. Configure the server in `.vscode/mcp.json`
+5. Click "Start" just over the server name in `.vscode/mcp.json`
 
 ### Configuration
 
@@ -54,12 +42,21 @@ MCP servers are configured in your project's `.vscode/mcp.json`:
 ```json
 {
   "servers": {
-    "server-name": {
-      "command": "command",
-      "args": ["arg1", "arg2"],
-      "env": {
-        "ENV_VAR": "value"
-      }
+    "server1-name": {
+      "command": "docker",
+      "args": [
+        "arg1", 
+        "arg2",
+        "arg2"
+        ]
+    },
+    "server2-name": {
+      "command": "docker",
+      "args": [
+        "arg1", 
+        "arg2",
+        "arg2"
+        ]
     }
   }
 }
@@ -73,15 +70,6 @@ Once configured, MCP servers:
 - Enhance context for code generation
 - Work seamlessly with custom agents
 
-## 🏗️ MCP Server Structure
-
-Each MCP server typically includes:
-
-- `server.py` or equivalent - Main server implementation
-- `README.md` - Documentation and setup guide
-- `mcp.json` - Configuration template
-- `setup.ps1` / `setup.sh` - Installation scripts
-- `requirements.txt` or `package.json` - Dependencies
 
 ## 🤝 Contributing
 
