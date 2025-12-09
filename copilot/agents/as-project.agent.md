@@ -36,29 +36,22 @@ For obscure errors, practical guides, or community wisdom, search the [B&R Commu
 
 ## Build and Transfer
 
-To build and transfer the project, use the command line tool `BR.AS.Build.exe`. Default AS6 path: `C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe` Alternative path for AS4.12: `C:\BRAutomation\AS412\bin-en\BR.AS.Build.exe`
+To build and transfer the project, use the command line tools `BR.AS.Build.exe` (for building) and `PVITransfer.exe` (for transferring).
 
-### Build Modes
-The `-buildMode` argument determines the action:
-- `"Build"`: Compiles the project (default).
-- `"BuildAndTransfer"`: Compiles and transfers/downloads/installs to the connected PLC.
-- `"BuildAndCreateCompactFlash"`: Used with `-simulation` for offline installation on a simulated PLC.
+### 1. Build Project
+Use `BR.AS.Build.exe` to compile the project and generate the RUC package. Default AS6 path: `C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe`.
 
-### Simulation
-Use the `-simulation` flag when working with a simulated PLC (ARsim) on localhost.
-
-### Command
+**Command:**
 ```cmd
-"<PathToAS>\BR.AS.Build.exe" "<PathToProject.apj>" -c "<Configuration>" -t "<TempPath>" -buildMode "<Mode>" [options]
+"<PathToAS>\BR.AS.Build.exe" "<PathToProject.apj>" -c "<Configuration>" -t "<TempPath>" -o "<OutputPath>" -buildMode "Build" -buildRUCPackage
 ```
 
 **Arguments:**
 - `-h / -?`: Displays this information
-- `-c <config>`: Name of the configuration to be built
-- `-t <directory>`: Temporary directory
-- `-o <directory>`: Output directory (Only needed if `-buildRUCPackage` is used)
+- `-c <config>`: Name of the configuration to be built (The name is found in the `LastUser.set` file as "ActiveConfigurationName" in the root folder of the project)
+- `-t <directory>`: Temporary directory (Usually the `\Temp` folder in the root is used)
+- `-o <directory>`: Output directory (Usually the `\Temp` folder in the root is used)
 - `-all`: Project rebuild (cleans the binary and parts of the temporary files)
-- `-profile`: Display profiling information
 - `-X`: Create cross reference only data
 - `-clean`: Cleans the Binary and parts of the Temp folder
 - `-clean-temporary`: Cleans the Temp folder
@@ -66,47 +59,45 @@ Use the `-simulation` flag when working with a simulated PLC (ARsim) on localhos
 - `-clean-generated`: Cleans the Temp\Includes and Temp\Archives\<ConfigName> folder
 - `-clean-diagnosis`: Cleans the Diagnosis folder
 - `-cleanAll`: Cleans the Temp, Binaries, Diagnosis and the rest of temporary folders
-- `-buildMode "<mode>"`: Defines the mode of the build ("Build", "BuildAndTransfer", "BuildAndCreateCompactFlash")
-- `-simulation`: Flag indicating if a simulated configuration should be built
+- `-buildMode "<mode>"`: Defines the mode of the build ("Build")
 - `-buildRUCPackage`: Flag indicating if a RUC Package should be created during build
+
+**Example:**
+```cmd
+"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Temp" -buildMode "Build" -buildRUCPackage
+```
+
+### 2. Transfer to PLC
+Use `PVITransfer.exe` with a PIL file to transfer the generated package. Default AS6 path: `C:\Program Files (x86)\BRAutomation\PVI6\PVI\Tools\PVITransfer\PVITransfer.exe`.
+
+**Command:**
+```cmd
+"<PathToPVI>\PVI\Tools\PVITransfer\PVITransfer.exe" -silent "<PathToPILFile.pil>"
+```
+
+**Note:** You will need to create a `.pil` file defining the transfer parameters (source RUC package, destination, install mode). 
 
 ### Examples
 
-**1. Build only (Real PLC):**
+**1. Build Project (Real PLC or Simulator):**
 ```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "RealPLC" -t "C:\Projects\MyMachine\Temp" -buildMode "Build"
+"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Temp" -buildMode "Build" -buildRUCPackage
 ```
 
-**2. Build and Transfer (Real PLC):**
+**2. Transfer Project:**
+*Requires a valid .pil file pointing to the generated RUC package.*
 ```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "RealPLC" -t "C:\Projects\MyMachine\Temp" -buildMode "BuildAndTransfer"
+"C:\Program Files (x86)\BRAutomation\PVI6\PVI\Tools\PVITransfer\PVITransfer.exe" -silent "C:\Projects\MyMachine\Transfer.pil"
 ```
 
-**3. Build and Offline Install to Simulator (Localhost):**
-*Use this to create the simulation environment (Offline Install).*
+**3. Rebuild Project:**
+*Forces a complete rebuild.*
 ```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -simulation -buildMode "BuildAndCreateCompactFlash"
+"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Temp" -buildMode "Build" -buildRUCPackage -all
 ```
 
-**4. Build and Transfer to Simulator (Online):**
-*Use this to transfer changes to a running simulator.*
-```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -simulation -buildMode "BuildAndTransfer"
-```
-
-**5. Build only Simulator:**
-```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -simulation -buildMode "Build"
-```
-
-**6. Rebuild Project:**
-*Forces a complete rebuild of the project.*
-```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "RealPLC" -t "C:\Projects\MyMachine\Temp" -buildMode "Build" -all
-```
-
-**7. Clean Project:**
-*Use `-clean` or `-cleanAll` when strange errors occur or to reset the simulator state.*
+**4. Clean Project:**
+*Use `-cleanAll` to resolve strange errors.*
 ```cmd
 "C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -cleanAll
 ```
