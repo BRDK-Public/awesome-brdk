@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "sdm": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "${workspaceFolder}/dumps:/dumps",
+        "-e",
+        "SDM_DUMP_DIR=/dumps",
+        "ghcr.io/brdk-github/sdm-mcp:latest"
+      ]
+    }
+  }
+}
