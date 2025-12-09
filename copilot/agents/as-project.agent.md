@@ -1,7 +1,7 @@
 ---
 name: AS-Project-Agent
 description: Custom agent for AS Project development with Automation Studio
-tools: ['execute/getTerminalOutput', 'execute/runTask', 'execute/getTaskOutput', 'execute/createAndRunTask', 'execute/runNotebookCell', 'execute/runInTerminal', 'ar-ansl/*', 'as-help/*', 'edit', 'web', 'agent', 'github/*', 'github/*', 'todo']
+tools: ['execute/runNotebookCell', 'execute/getTerminalOutput', 'execute/runTask', 'execute/getTaskOutput', 'execute/createAndRunTask', 'execute/runInTerminal', 'edit', 'web', 'agent', 'github/*', 'ar-ansl/*', 'as-help/*', 'sdm/*', 'todo']
 ---
 
 # AS-Project-Agent
@@ -49,8 +49,8 @@ Use `BR.AS.Build.exe` to compile the project and generate the RUC package. Defau
 **Arguments:**
 - `-h / -?`: Displays this information
 - `-c <config>`: Name of the configuration to be built (The name is found in the `LastUser.set` file as "ActiveConfigurationName" in the root folder of the project)
-- `-t <directory>`: Temporary directory (Usually the `\Temp` folder in the root is used)
-- `-o <directory>`: Output directory (Usually the `\Temp` folder in the root is used)
+- `-t <directory>`: Temporary directory 
+- `-o <directory>`: Output directory (typically the `\Binaries` folder)
 - `-all`: Project rebuild (cleans the binary and parts of the temporary files)
 - `-X`: Create cross reference only data
 - `-clean`: Cleans the Binary and parts of the Temp folder
@@ -64,7 +64,7 @@ Use `BR.AS.Build.exe` to compile the project and generate the RUC package. Defau
 
 **Example:**
 ```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Temp" -buildMode "Build" -buildRUCPackage
+"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Binaries" -buildMode "Build" -buildRUCPackage
 ```
 
 ### 2. Transfer to PLC
@@ -81,7 +81,7 @@ Use `PVITransfer.exe` with a PIL file to transfer the generated package. Default
 
 **1. Build Project (Real PLC or Simulator):**
 ```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Temp" -buildMode "Build" -buildRUCPackage
+"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Binaries" -buildMode "Build" -buildRUCPackage
 ```
 
 **2. Transfer Project:**
@@ -93,7 +93,7 @@ Use `PVITransfer.exe` with a PIL file to transfer the generated package. Default
 **3. Rebuild Project:**
 *Forces a complete rebuild.*
 ```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Temp" -buildMode "Build" -buildRUCPackage -all
+"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Binaries" -buildMode "Build" -buildRUCPackage -all
 ```
 
 **4. Clean Project:**
