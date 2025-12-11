@@ -54,7 +54,7 @@ Model Context Protocol servers for extended functionality:
 - GitHub Repository: **[ar-ansl-mcp](https://github.com/BRDK-GitHub/ar-ansl-mcp)** - Link to the GitHub repository
 
 ### SDM MCP:
-- **[SCM MCP in Copilot](./copilot/mcp/sdm/)** - PLC System Dump Inspection
+- **[SDM MCP in Copilot](./copilot/mcp/sdm/)** - PLC System Dump Inspection
 - GitHub Repository: **[sdm-mcp](https://github.com/BRDK-GitHub/sdm-mcp)** - Link to the GitHub repository.
 
 [📚 More about MCP Servers](./copilot/mcp/README.md)
