@@ -19,16 +19,13 @@ If you use the `get_raw_dump` tool with Docker, you must mount a volume and set 
     "sdm": {
       "command": "docker",
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-v",
-        "${workspaceFolder}/dumps:/dumps",
-        "-e",
-        "SDM_DUMP_DIR=/dumps",
+        "run", "-i", "--rm",
+        "-v", "${workspaceFolder}/dumps:/dumps",
+        "-e", "SDM_DUMP_DIR=/dumps",
         "ghcr.io/brdk-github/sdm-mcp:latest"
       ]
     }
   }
 }
+
 ```
