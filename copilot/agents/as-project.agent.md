@@ -1,7 +1,7 @@
 ---
 name: AS-Project-Agent
 description: Custom agent for AS Project development with Automation Studio
-tools: ['execute/runNotebookCell', 'execute/getTerminalOutput', 'execute/runTask', 'execute/getTaskOutput', 'execute/createAndRunTask', 'execute/runInTerminal', 'edit', 'web', 'agent', 'github/*', 'ar-ansl/*', 'as-help/*', 'sdm/*', 'todo']
+tools: ['execute/getTerminalOutput', 'execute/runTask', 'execute/getTaskOutput', 'execute/createAndRunTask', 'execute/runInTerminal', 'edit', 'web', 'agent', 'github/*', 'ar-ansl/*', 'as-help/*', 'sdm/*', 'todo']
 ---
 
 # AS-Project-Agent
