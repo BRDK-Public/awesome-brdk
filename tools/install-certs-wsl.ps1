@@ -41,7 +41,28 @@ if ($certs.Count -eq 0) {
     exit 1
 }
 
-$cert = $certs[0]
+if ($certs.Count -gt 1) {
+    Write-Warning "Multiple certificates matching '$CertSubject' were found. Please select one to install:"
+    for ($i = 0; $i -lt $certs.Count; $i++) {
+        $c = $certs[$i]
+        Write-Host "[$i] Subject: $($c.Subject) | Thumbprint: $($c.Thumbprint)"
+    }
+
+    $selection = Read-Host "Enter the index of the certificate to use (default is 0)"
+    if ([string]::IsNullOrWhiteSpace($selection)) {
+        $selectedIndex = 0
+    } elseif (-not [int]::TryParse($selection, [ref]$selectedIndex)) {
+        Write-Warning "Input '$selection' is not a valid number. Defaulting to index 0."
+        $selectedIndex = 0
+    } elseif ($selectedIndex -lt 0 -or $selectedIndex -ge $certs.Count) {
+        Write-Warning "Index '$selectedIndex' is out of range. Defaulting to index 0."
+        $selectedIndex = 0
+    }
+
+    $cert = $certs[$selectedIndex]
+} else {
+    $cert = $certs[0]
+}
 Write-Host "Found certificate: $($cert.Subject)"
 Write-Host "Thumbprint: $($cert.Thumbprint)"
 
