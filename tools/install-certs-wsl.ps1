@@ -81,6 +81,31 @@ $targetCrtPath = "/usr/local/share/ca-certificates/custom-corporate-root.crt"
 
 Write-Host "Installing certificate in WSL..."
 
+# Check if openssl is installed in the WSL distribution
+Write-Host "Verifying openssl is available..."
+$opensslCheckArgs = @()
+if (-not [string]::IsNullOrEmpty($Distro)) {
+    $opensslCheckArgs += "-d", $Distro
+}
+$opensslCheckArgs += "-e", "bash", "-c", "command -v openssl"
+
+$opensslPath = (& wsl.exe $opensslCheckArgs 2>$null).Trim()
+
+if (-not $opensslPath) {
+    Write-Error @"
+openssl is not installed in the WSL distribution.
+Please install openssl in your WSL distribution before running this script.
+
+For Ubuntu/Debian-based distributions, run:
+    wsl -d $Distro -u root -e bash -c "apt-get update && apt-get install -y openssl"
+
+For other distributions, use the appropriate package manager.
+"@
+    exit 1
+}
+
+Write-Host "openssl found at: $opensslPath"
+
 # Command to run inside WSL:
 # 1. Convert DER (.cer) to PEM (.crt) and place it in /usr/local/share/ca-certificates/
 # 2. Run update-ca-certificates to update /etc/ssl/certs/
