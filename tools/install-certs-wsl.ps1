@@ -92,7 +92,7 @@ $process = Start-Process -FilePath "wsl.exe" -ArgumentList ($wslArgs + $bashComm
 if ($process.ExitCode -eq 0) {
     Write-Host "Certificate installed successfully."
 } else {
-    Write-Error "Failed to install certificate in WSL. Exit code: $($process.ExitCode)"
+    Write-Error "Failed to install certificate in WSL. Exit code: $($process.ExitCode). Common causes: OpenSSL not installed in the WSL distribution, insufficient permissions, or invalid certificate format."
 }
 
 Write-Host "Cleaning up..."
