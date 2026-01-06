@@ -93,17 +93,17 @@ try {
     $opensslPath = (& wsl.exe $opensslCheckArgs 2>$null).Trim()
 
     if (-not $opensslPath) {
-        $distroArg = if ([string]::IsNullOrEmpty($Distro)) { "" } else { "-d $Distro " }
+        $distroFlag = if ([string]::IsNullOrEmpty($Distro)) { "" } else { "-d $Distro " }
         
         Write-Error @"
 openssl is not installed in the WSL distribution.
 Please install openssl in your WSL distribution before running this script.
 
 Installation examples:
-  Ubuntu/Debian: wsl $distroArg-u root -e bash -c "apt-get update && apt-get install -y openssl"
-  Alpine:        wsl $distroArg-u root -e ash -c "apk add --no-cache openssl"
-  openSUSE:      wsl $distroArg-u root -e bash -c "zypper install -y openssl"
-  CentOS/RHEL:   wsl $distroArg-u root -e bash -c "yum install -y openssl"
+  Ubuntu/Debian: wsl ${distroFlag}-u root -e bash -c "apt-get update && apt-get install -y openssl"
+  Alpine:        wsl ${distroFlag}-u root -e ash -c "apk add --no-cache openssl"
+  openSUSE:      wsl ${distroFlag}-u root -e bash -c "zypper install -y openssl"
+  CentOS/RHEL:   wsl ${distroFlag}-u root -e bash -c "yum install -y openssl"
 
 Use the appropriate command for your distribution.
 "@
