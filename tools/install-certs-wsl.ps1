@@ -69,46 +69,47 @@ Write-Host "Thumbprint: $($cert.Thumbprint)"
 $tempFileName = "wsl_cert_export.cer"
 $tempFilePath = Join-Path $env:USERPROFILE $tempFileName
 Write-Host "Exporting certificate to $tempFilePath..."
-Export-Certificate -Cert $cert -Type cer -FilePath $tempFilePath -Force | Out-Null
 
-# Construct WSL command
-$wslArgs = @()
-if (-not [string]::IsNullOrEmpty($Distro)) {
-    $wslArgs += "-d", $Distro
-}
-$wslArgs += "-u", "root"
-$wslArgs += "-e", "bash", "-c"
-
-# WSL path to the exported file
-# Use wslpath to convert the Windows path to the WSL path correctly
-# This handles different mount points and username mismatches
-$wslPathArgs = @()
-if (-not [string]::IsNullOrEmpty($Distro)) {
-    $wslPathArgs += "-d", $Distro
-}
-$wslPathArgs += "-e", "wslpath", "-u", "$tempFilePath"
-
-Write-Host "Resolving WSL path for $tempFilePath..."
-$wslSourcePath = (& wsl.exe $wslPathArgs).Trim()
-
-if (-not $wslSourcePath) {
-    Write-Error "Failed to resolve WSL path. Ensure WSL is working."
-    exit 1
-}
-
-Write-Host "WSL Source Path: $wslSourcePath"
-
-$targetCrtPath = "/usr/local/share/ca-certificates/custom-corporate-root.crt"
-
-Write-Host "Installing certificate in WSL..."
-
-# Command to run inside WSL:
-# 1. Convert DER (.cer) to PEM (.crt) and place it in /usr/local/share/ca-certificates/
-# 2. Run update-ca-certificates to update /etc/ssl/certs/
-$bashCommand = "openssl x509 -inform der -in '$wslSourcePath' -out '$targetCrtPath' && update-ca-certificates"
-
-# Execute
 try {
+    Write-Host "Exporting certificate to $tempFilePath..."
+    Export-Certificate -Cert $cert -Type cer -FilePath $tempFilePath -Force | Out-Null
+
+    # Construct WSL command
+    $wslArgs = @()
+    if (-not [string]::IsNullOrEmpty($Distro)) {
+        $wslArgs += "-d", $Distro
+    }
+    $wslArgs += "-u", "root"
+    $wslArgs += "-e", "bash", "-c"
+
+    # WSL path to the exported file
+    # Use wslpath to convert the Windows path to the WSL path correctly
+    # This handles different mount points and username mismatches
+    $wslPathArgs = @()
+    if (-not [string]::IsNullOrEmpty($Distro)) {
+        $wslPathArgs += "-d", $Distro
+    }
+    $wslPathArgs += "-e", "wslpath", "-u", "$tempFilePath"
+
+    Write-Host "Resolving WSL path for $tempFilePath..."
+    $wslSourcePath = (& wsl.exe $wslPathArgs).Trim()
+
+    if (-not $wslSourcePath) {
+        throw "Failed to resolve WSL path. Ensure WSL is working."
+    }
+
+    Write-Host "WSL Source Path: $wslSourcePath"
+
+    $targetCrtPath = "/usr/local/share/ca-certificates/custom-corporate-root.crt"
+
+    Write-Host "Installing certificate in WSL..."
+
+    # Command to run inside WSL:
+    # 1. Convert DER (.cer) to PEM (.crt) and place it in /usr/local/share/ca-certificates/
+    # 2. Run update-ca-certificates to update /etc/ssl/certs/
+    $bashCommand = "openssl x509 -inform der -in '$wslSourcePath' -out '$targetCrtPath' && update-ca-certificates"
+
+    # Execute
     $process = Start-Process -FilePath "wsl.exe" -ArgumentList ($wslArgs + $bashCommand) -PassThru -Wait -NoNewWindow
 
     if ($process.ExitCode -eq 0) {
@@ -116,10 +117,12 @@ try {
     } else {
         Write-Error "Failed to install certificate in WSL. Exit code: $($process.ExitCode)"
     }
-} finally {
+}
+finally {
     Write-Host "Cleaning up..."
     if (Test-Path $tempFilePath) {
         Remove-Item -Path $tempFilePath -Force
     }
+
+    Write-Host "Done."
 }
-Write-Host "Done."
