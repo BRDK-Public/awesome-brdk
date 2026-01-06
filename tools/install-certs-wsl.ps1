@@ -104,6 +104,36 @@ try {
 
     Write-Host "Installing certificate in WSL..."
 
+    # Check if openssl is installed in the WSL distribution
+    Write-Host "Verifying openssl is available..."
+    $opensslCheckArgs = @()
+    if (-not [string]::IsNullOrEmpty($Distro)) {
+        $opensslCheckArgs += "-d", $Distro
+    }
+    $opensslCheckArgs += "-e", "bash", "-c", "command -v openssl"
+
+    $opensslPath = (& wsl.exe $opensslCheckArgs 2>$null).Trim()
+
+    if (-not $opensslPath) {
+        $distroFlag = if ([string]::IsNullOrEmpty($Distro)) { "" } else { "-d $Distro " }
+        
+        $errorMessage = @"
+openssl is not installed in the WSL distribution.
+Please install openssl in your WSL distribution before running this script.
+
+Installation examples:
+  Ubuntu/Debian: wsl ${distroFlag}-u root -e bash -c "apt-get update && apt-get install -y openssl"
+  Alpine:        wsl ${distroFlag}-u root -e ash -c "apk add --no-cache openssl"
+  openSUSE:      wsl ${distroFlag}-u root -e bash -c "zypper install -y openssl"
+  RHEL/CentOS:   wsl ${distroFlag}-u root -e bash -c "dnf install -y openssl"
+
+Use the appropriate command for your distribution.
+"@
+        throw $errorMessage
+    }
+
+    Write-Host "openssl found at: $opensslPath"
+
     # Command to run inside WSL:
     # 1. Convert DER (.cer) to PEM (.crt) and place it in /usr/local/share/ca-certificates/
     # 2. Run update-ca-certificates to update /etc/ssl/certs/
