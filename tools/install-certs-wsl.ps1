@@ -87,17 +87,18 @@ Write-Host "Installing certificate in WSL..."
 $bashCommand = "openssl x509 -inform der -in '$wslSourcePath' -out '$targetCrtPath' && update-ca-certificates"
 
 # Execute
-$process = Start-Process -FilePath "wsl.exe" -ArgumentList ($wslArgs + $bashCommand) -PassThru -Wait -NoNewWindow
+try {
+    $process = Start-Process -FilePath "wsl.exe" -ArgumentList ($wslArgs + $bashCommand) -PassThru -Wait -NoNewWindow
 
-if ($process.ExitCode -eq 0) {
-    Write-Host "Certificate installed successfully."
-} else {
-    Write-Error "Failed to install certificate in WSL. Exit code: $($process.ExitCode). Common causes: OpenSSL not installed in the WSL distribution, insufficient permissions, or invalid certificate format."
+    if ($process.ExitCode -eq 0) {
+        Write-Host "Certificate installed successfully."
+    } else {
+        Write-Error "Failed to install certificate in WSL. Exit code: $($process.ExitCode)"
+    }
+} finally {
+    Write-Host "Cleaning up..."
+    if (Test-Path $tempFilePath) {
+        Remove-Item -Path $tempFilePath -Force
+    }
 }
-
-Write-Host "Cleaning up..."
-if (Test-Path $tempFilePath) {
-    Remove-Item -Path $tempFilePath -Force
-}
-
 Write-Host "Done."
