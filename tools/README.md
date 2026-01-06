@@ -64,7 +64,7 @@ Commercial use of Docker Desktop in larger enterprises (more than 250 employees 
 
 ### Installation
 
-Docker runs natively on Linux. We will use the default Ubuntu distribution for WSL, but other distributions work similarly.
+Docker runs natively on Linux. We will use the default Ubuntu distribution for WSL, but other distributions work similarly but might need extra work.
 
 #### 1. Install WSL
 
