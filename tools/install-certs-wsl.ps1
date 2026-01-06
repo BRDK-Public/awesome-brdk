@@ -102,7 +102,7 @@ Installation examples:
   Ubuntu/Debian: wsl ${distroFlag}-u root -e bash -c "apt-get update && apt-get install -y openssl"
   Alpine:        wsl ${distroFlag}-u root -e ash -c "apk add --no-cache openssl"
   openSUSE:      wsl ${distroFlag}-u root -e bash -c "zypper install -y openssl"
-  CentOS/RHEL:   wsl ${distroFlag}-u root -e bash -c "yum install -y openssl"
+  RHEL/CentOS:   wsl ${distroFlag}-u root -e bash -c "dnf install -y openssl"
 
 Use the appropriate command for your distribution.
 "@
@@ -122,7 +122,7 @@ Use the appropriate command for your distribution.
     if ($process.ExitCode -eq 0) {
         Write-Host "Certificate installed successfully."
     } else {
-        Write-Error "Failed to install certificate in WSL. Exit code: $($process.ExitCode)"
+        throw "Failed to install certificate in WSL. Exit code: $($process.ExitCode). Check if the WSL distribution is running and you have proper permissions."
     }
 } finally {
     Write-Host "Cleaning up..."
