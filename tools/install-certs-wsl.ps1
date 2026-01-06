@@ -72,8 +72,7 @@ try {
     $wslSourcePath = (& wsl.exe $wslPathArgs).Trim()
 
     if (-not $wslSourcePath) {
-        Write-Error "Failed to resolve WSL path. Ensure WSL is working."
-        exit 1
+        throw "Failed to resolve WSL path. Ensure WSL is working."
     }
 
     Write-Host "WSL Source Path: $wslSourcePath"
@@ -95,7 +94,7 @@ try {
     if (-not $opensslPath) {
         $distroFlag = if ([string]::IsNullOrEmpty($Distro)) { "" } else { "-d $Distro " }
         
-        Write-Error @"
+        $errorMessage = @"
 openssl is not installed in the WSL distribution.
 Please install openssl in your WSL distribution before running this script.
 
@@ -107,7 +106,7 @@ Installation examples:
 
 Use the appropriate command for your distribution.
 "@
-        exit 1
+        throw $errorMessage
     }
 
     Write-Host "openssl found at: $opensslPath"
