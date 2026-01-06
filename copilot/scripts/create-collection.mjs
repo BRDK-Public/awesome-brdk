@@ -109,7 +109,7 @@ async function createCollectionTemplate() {
     }
 
     // Get description
-    const defaultDescription = `A collection of related prompts, instructions, and chat modes for ${collectionName.toLowerCase()}.`;
+    const defaultDescription = `A collection of related prompts, instructions, and agents for ${collectionName.toLowerCase()}.`;
     let description = await prompt(
       `Description (default: ${defaultDescription}): `
     );

@@ -210,6 +210,7 @@ function validateCollectionItems(items) {
       } kind is "agent" but path doesn't end with .agent.md`;
     }
 
+
     // Validate agent-specific frontmatter
     if (item.kind === "agent") {
       const agentValidation = validateAgentFile(filePath, i + 1);
