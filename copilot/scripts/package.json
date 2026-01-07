@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run build",
-    "build": "node update-readme.mjs",
+    "build": "npm run collection:validate && npm run skill:validate && node update-readme.mjs",
     "collection:validate": "node validate-collections.mjs",
     "collection:create": "node create-collection.mjs",
     "skill:validate": "node validate-skill.mjs",
