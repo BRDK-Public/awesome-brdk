@@ -8,13 +8,13 @@ This project serves as a central hub for shareable B&R Industrial Automation dev
 
 ## Contents
 
-- [👉 Custom Agents](/copilot/docs/README.agents.md)
-- [👉 Instructions](/copilot/docs/README.instructions.md)
-- [👉 Prompts](/copilot/docs/README.prompts.md)
-- [👉 Skills](/copilot/docs/README.skills.md)
-- [👉 MCP Servers](/copilot/mcp/README.md)
-- [👉 Documentation](#documentation)
-- [👉 Contributing](#contributing)
+- [Custom Agents](/copilot/docs/README.agents.md)
+- [Instructions](/copilot/docs/README.instructions.md)
+- [Prompts](/copilot/docs/README.prompts.md)
+- [Skills](/copilot/docs/README.skills.md)
+- [MCP Servers](/copilot/mcp/README.md)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
 
 
 ## Tools
