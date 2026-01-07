@@ -2,7 +2,7 @@
 
 MCP servers extend GitHub Copilot's capabilities by providing specialized tools and context for B&R Industrial Automation development.
 
-## MCP Servers
+## Available MCP Servers
 
 Model Context Protocol servers for extended functionality:
 

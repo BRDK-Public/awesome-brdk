@@ -22,4 +22,4 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
-| [as-compile](../skills/as-compile/SKILL.md) | Skill used for compiling and tranfering a Automation Studion project to a PLC or simulator | None |
+| [as-compile](../skills/as-compile/SKILL.md) | Skill used for compiling and transferring an Automation Studio project to a PLC or simulator | None |

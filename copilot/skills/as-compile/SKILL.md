@@ -1,6 +1,6 @@
 ---
 name: as-compile
-description: Skill used for compiling and tranfering a Automation Studion project to a PLC or simulator
+description: Skill used for compiling and transferring a Automation Studio project to a PLC or simulator
 ---
 
 # AS Compile
