@@ -53,5 +53,6 @@ To update or improve these guidelines:
 ## 📝 Related Resources
 
 - [Copilot Instructions](../copilot/instructions/) - Instruction files based on these guidelines
-- [Custom Agents](../copilot/agents/) - Agents that enforce these standards
+- [Custom Agents](../copilot/agents/) - Agents that acts on these standards
+- [Skills](/copilot/docs/README.skills.md) - Skills that enforce these standards
 - [Prompts](../copilot/prompts/) - Templates aligned with these practices

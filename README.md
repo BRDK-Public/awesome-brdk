@@ -13,21 +13,8 @@ This project serves as a central hub for shareable B&R Industrial Automation dev
 - [Prompts](/copilot/docs/README.prompts.md)
 - [Skills](/copilot/docs/README.skills.md)
 - [MCP Servers](/copilot/mcp/README.md)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-
-
-## Tools
-
-Utility scripts and helper tools:
-
-- **[Copilot Wrapper](./tools/README.md)** - PowerShell wrapper for handling SSL/TLS in corporate environments
-
-## Documentation
-
-- **[BRDK Coding Guidelines](./docs/BRDK_Coding_Guideline.md)** - Comprehensive B&R coding standards
-- **[MappView Coding Guidelines](./docs/MappView_Coding_Guideline_External.md)** - HMI development guidelines
-- **[Copilot Documentation](./copilot/docs/)** - Guides for all Copilot resources
+- [Tools](/tools/README.md)
+- [Documentation](/docs/README.md)
 
 ## Contributing
 
