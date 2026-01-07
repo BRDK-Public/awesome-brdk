@@ -8,32 +8,45 @@
     Useful for corporate environments with SSL inspection (e.g., Zscaler).
 
 .PARAMETER CertSubject
-    The subject name of the certificate to find. Default is '*Zscaler Root CA*'.
+    The subject name(s) of the certificate(s) to find. Default is @('*Zscaler Root CA*', '*ABB*').
+    Can accept multiple patterns as an array.
 
 .PARAMETER Distro
     The WSL distribution to install the certificate into. If omitted, uses the default distribution.
 
 .EXAMPLE
     .\install-certs-wsl.ps1
-    Installs Zscaler certificate into default WSL distro.
+    Installs Zscaler and ABB certificates into default WSL distro.
 
 .EXAMPLE
     .\install-certs-wsl.ps1 -Distro Ubuntu-22.04
-    Installs Zscaler certificate into Ubuntu-22.04.
+    Installs Zscaler and ABB certificates into Ubuntu-22.04.
+
+.EXAMPLE
+    .\install-certs-wsl.ps1 -CertSubject '*Zscaler*'
+    Installs only Zscaler certificates into default WSL distro.
 #>
 param(
-    [string]$CertSubject = '*Zscaler Root CA*',
+    [string[]]$CertSubject = @('*Zscaler Root CA*', '*ABB*'),
     [string]$Distro
 )
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "Searching for certificate matching '$CertSubject' in Cert:\LocalMachine\Root..."
-$certs = @(Get-ChildItem -path Cert:\LocalMachine\Root -Recurse | Where-Object {$_.Subject -like $CertSubject})
+Write-Host "Searching for certificates matching patterns: $($CertSubject -join ', ') in Cert:\LocalMachine\Root..."
+$certs = @(Get-ChildItem -path Cert:\LocalMachine\Root -Recurse | Where-Object {
+    foreach ($pattern in $CertSubject) {
+        if ($_.Subject -like $pattern) { return $true }
+    }
+})
 
 if ($certs.Count -eq 0) {
     Write-Warning "Certificate not found in LocalMachine\Root. Checking CurrentUser\Root..."
-    $certs = @(Get-ChildItem -path Cert:\CurrentUser\Root -Recurse | Where-Object {$_.Subject -like $CertSubject})
+    $certs = @(Get-ChildItem -path Cert:\CurrentUser\Root -Recurse | Where-Object {
+        foreach ($pattern in $CertSubject) {
+            if ($_.Subject -like $pattern) { return $true }
+        }
+    })
 }
 
 if ($certs.Count -eq 0) {
@@ -145,12 +158,14 @@ try {
 
         Write-Host "Installing certificate in WSL to $targetCrtPath..."
 
-        # Command to run inside WSL:
-        # 1. Convert DER (.cer) to PEM (.crt) and place it in /usr/local/share/ca-certificates/
-        $bashCommand = "openssl x509 -inform der -in '$wslSourcePath' -out '$targetCrtPath'"
+        # Execute openssl directly via wsl to avoid bash escaping issues
+        $opensslArgs = @()
+        if (-not [string]::IsNullOrEmpty($Distro)) {
+            $opensslArgs += "-d", $Distro
+        }
+        $opensslArgs += "-u", "root", "--", "openssl", "x509", "-inform", "der", "-in", $wslSourcePath, "-out", $targetCrtPath
 
-        # Execute
-        $process = Start-Process -FilePath "wsl.exe" -ArgumentList ($wslArgs + $bashCommand) -PassThru -Wait -NoNewWindow
+        $process = Start-Process -FilePath "wsl.exe" -ArgumentList $opensslArgs -PassThru -Wait -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
             Write-Host "Certificate exported to WSL successfully."
