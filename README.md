@@ -33,7 +33,7 @@ Utility scripts and helper tools:
 
 Contributions are welcome! To contribute:
 
-1. Fork the repository (optinal)
+1. Fork the repository (optional)
 2. Create a feature branch
 3. Add your resource (agent, instruction, prompt, skills etc.)
 4. Update relevant README files (use the scripts in the in the [package.json](/copilot/scripts/package.json) to generate documentation for the [docs](/copilot/docs/) folder)
