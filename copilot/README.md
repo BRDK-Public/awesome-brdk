@@ -25,6 +25,7 @@ This directory contains specialized resources for GitHub Copilot to enhance B&R 
 - [Collections Guide](./docs/README.collections.md)
 - [Instructions Guide](./docs/README.instructions.md)
 - [Prompts Guide](./docs/README.prompts.md)
+- [Skills Guide](./docs/README.skills.md)
 
 ## 🤝 Contributing
 

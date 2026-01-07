@@ -1,14 +1,16 @@
 {
   "name": "scripts",
   "version": "1.0.0",
-  "description": "Scripts for managing awesome-brdk collections",
+  "description": "Scripts for managing awesome-brdk collections and skills",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "validate": "node validate-collection.mjs",
-    "generate": "node update-readme.mjs",
-    "create": "node create-collection.mjs",
-    "build": "npm run validate && npm run generate"
+    "start": "npm run build",
+    "build": "npm run collection:validate && npm run skill:validate && node update-readme.mjs",
+    "collection:validate": "node validate-collections.mjs",
+    "collection:create": "node create-collection.mjs",
+    "skill:validate": "node validate-skill.mjs",
+    "skill:create": "node create-skill.mjs"
   },
   "keywords": [],
   "author": "",

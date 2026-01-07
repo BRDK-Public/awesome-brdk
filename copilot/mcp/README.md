@@ -2,6 +2,23 @@
 
 MCP servers extend GitHub Copilot's capabilities by providing specialized tools and context for B&R Industrial Automation development.
 
+## Available MCP Servers
+
+Model Context Protocol servers for extended functionality:
+
+### AS Help MCP:
+- **[AS Help MCP in Copilot](./copilot/mcp/as-help/)** - Search and retrieve B&R Automation Studio help documentation 
+- GitHub Repository: **[as-help-mcp](https://github.com/BRDK-GitHub/as-help-mcp)** - Link to the GitHub repository
+
+### AR ANSL MCP:
+- **[AR ANSL MCP in Copilot](./copilot/mcp/ar-ansl/)** - ANSL connection to a B&R PLC or the Simulator.
+- GitHub Repository: **[ar-ansl-mcp](https://github.com/BRDK-GitHub/ar-ansl-mcp)** - Link to the GitHub repository
+
+### SDM MCP:
+- **[SDM MCP in Copilot](./copilot/mcp/sdm/)** - PLC System Dump Inspection
+- GitHub Repository: **[sdm-mcp](https://github.com/BRDK-GitHub/sdm-mcp)** - Link to the GitHub repository.
+
+
 ## What is MCP?
 
 Model Context Protocol (MCP) is an open standard that enables AI assistants to securely access external tools and data sources. MCP servers provide:
