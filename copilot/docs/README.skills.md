@@ -22,4 +22,4 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
-| [as-compile](../skills/as-compile/SKILL.md) | Skill used for compiling and transferring an Automation Studio project to a PLC or simulator | None |
+| [as-compile](../skills/as-compile/SKILL.md) | Build and transfer B&R Automation Studio projects to a PLC or simulator using BR.AS.Build.exe and PVITransfer.exe command-line tools. Use when compiling Automation Studio projects, creating RUC packages, transferring to PLCs, or cleaning build artifacts. | None |

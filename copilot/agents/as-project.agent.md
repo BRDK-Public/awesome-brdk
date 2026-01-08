@@ -1,7 +1,7 @@
 ---
 name: AS-Project-Agent
 description: Custom agent for AS Project development with Automation Studio
-tools: ['execute/getTerminalOutput', 'execute/runTask', 'execute/getTaskOutput', 'execute/createAndRunTask', 'execute/runInTerminal', 'edit', 'web', 'agent', 'github/*', 'ar-ansl/*', 'as-help/*', 'sdm/*', 'todo']
+tools: ['execute/getTerminalOutput', 'execute/runTask', 'execute/createAndRunTask', 'execute/runInTerminal', 'edit', 'web', 'agent', 'github/*', 'ar-ansl/*', 'as-help/*', 'sdm/*', 'todo']
 ---
 
 # AS-Project-Agent
@@ -34,70 +34,3 @@ Use the `ar-ansl-mcp` tools to interact with the PLC *after* a project transfer 
 For obscure errors, practical guides, or community wisdom, search the [B&R Community](https://community.br-automation.com/).
 - Use `fetch_webpage` to retrieve relevant discussions or guides from the community site.
 
-## Build and Transfer
-
-To build and transfer the project, use the command line tools `BR.AS.Build.exe` (for building) and `PVITransfer.exe` (for transferring).
-
-### 1. Build Project
-Use `BR.AS.Build.exe` to compile the project and generate the RUC package. Default AS6 path: `C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe`.
-
-**Command:**
-```cmd
-"<PathToAS>\BR.AS.Build.exe" "<PathToProject.apj>" -c "<Configuration>" -t "<TempPath>" -o "<OutputPath>" -buildMode "Build" -buildRUCPackage
-```
-
-**Arguments:**
-- `-h / -?`: Displays this information
-- `-c <config>`: Name of the configuration to be built (The name is found in the `LastUser.set` file as "ActiveConfigurationName" in the root folder of the project)
-- `-t <directory>`: Temporary directory 
-- `-o <directory>`: Output directory (typically the `\Binaries` folder)
-- `-all`: Project rebuild (cleans the binary and parts of the temporary files)
-- `-X`: Create cross reference only data
-- `-clean`: Cleans the Binary and parts of the Temp folder
-- `-clean-temporary`: Cleans the Temp folder
-- `-clean-binary`: Cleans the Binary folder
-- `-clean-generated`: Cleans the Temp\Includes and Temp\Archives\<ConfigName> folder
-- `-clean-diagnosis`: Cleans the Diagnosis folder
-- `-cleanAll`: Cleans the Temp, Binaries, Diagnosis and the rest of temporary folders
-- `-buildMode "<mode>"`: Defines the mode of the build ("Build")
-- `-buildRUCPackage`: Flag indicating if a RUC Package should be created during build
-
-**Example:**
-```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Binaries" -buildMode "Build" -buildRUCPackage
-```
-
-### 2. Transfer to PLC
-Use `PVITransfer.exe` with a PIL file to transfer the generated package. Default AS6 path: `C:\Program Files (x86)\BRAutomation\PVI6\PVI\Tools\PVITransfer\PVITransfer.exe`.
-
-**Command:**
-```cmd
-"<PathToPVI>\PVI\Tools\PVITransfer\PVITransfer.exe" -silent "<PathToPILFile.pil>"
-```
-
-**Note:** You will need to create a `.pil` file defining the transfer parameters (source RUC package, destination, install mode). 
-
-### Examples
-
-**1. Build Project (Real PLC or Simulator):**
-```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Binaries" -buildMode "Build" -buildRUCPackage
-```
-
-**2. Transfer Project:**
-*Requires a valid .pil file pointing to the generated RUC package.*
-```cmd
-"C:\Program Files (x86)\BRAutomation\PVI6\PVI\Tools\PVITransfer\PVITransfer.exe" -silent "C:\Projects\MyMachine\Transfer.pil"
-```
-
-**3. Rebuild Project:**
-*Forces a complete rebuild.*
-```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -o "C:\Projects\MyMachine\Binaries" -buildMode "Build" -buildRUCPackage -all
-```
-
-**4. Clean Project:**
-*Use `-cleanAll` to resolve strange errors.*
-```cmd
-"C:\Program Files (x86)\BRAutomation\AS6\bin-en\BR.AS.Build.exe" "C:\Projects\MyMachine\MyMachine.apj" -c "SimPC" -t "C:\Projects\MyMachine\Temp" -cleanAll
-```
