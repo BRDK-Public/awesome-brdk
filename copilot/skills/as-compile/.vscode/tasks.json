@@ -1,0 +1,328 @@
+{
+    "version": "2.0.0",
+    "inputs": [
+        {
+            "id": "configuration",
+            "type": "promptString",
+            "description": "Configuration name (leave empty for auto-detect, 'all' for all configurations)",
+            "default": ""
+        },
+        {
+            "id": "targetIP",
+            "type": "promptString",
+            "description": "Target IP address for transfer",
+            "default": "127.0.0.1"
+        },
+        {
+            "id": "maxWarnings",
+            "type": "promptString",
+            "description": "Maximum allowed warnings (-1 to disable)",
+            "default": "-1"
+        }
+    ],
+    "tasks": [
+        {
+            "label": "AS: Build",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "as-build",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "code": 4,
+                    "message": 5
+                }
+            },
+            "detail": "Build project with auto-detected AS version and configuration"
+        },
+        {
+            "label": "AS: Build All Configurations",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Build",
+                "-Configuration", "all"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "as-build",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "code": 4,
+                    "message": 5
+                }
+            },
+            "detail": "Build all configurations in the project"
+        },
+        {
+            "label": "AS: Rebuild",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Rebuild"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "as-build",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "code": 4,
+                    "message": 5
+                }
+            },
+            "detail": "Force complete rebuild of the project"
+        },
+        {
+            "label": "AS: Clean",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Clean"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": [],
+            "detail": "Clean all build artifacts (Temp, Binaries, Diagnosis)"
+        },
+        {
+            "label": "AS: Transfer",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Transfer",
+                "-TargetIP", "127.0.0.1"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": [],
+            "detail": "Transfer to localhost/ARsim (auto-generates PIL)"
+        },
+        {
+            "label": "AS: Build and Transfer",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "BuildAndTransfer",
+                "-TargetIP", "127.0.0.1"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "as-build",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "code": 4,
+                    "message": 5
+                }
+            },
+            "detail": "Build and transfer to localhost/ARsim"
+        },
+        {
+            "label": "AS: Build with Warning Limit",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Build",
+                "-MaxWarnings", "${input:maxWarnings}"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "as-build",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "code": 4,
+                    "message": 5
+                }
+            },
+            "detail": "Build with warning threshold enforcement"
+        },
+        {
+            "label": "AS: Build (Interactive)",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-Command",
+                "$cfg = '${input:configuration}'; $params = @{ProjectPath='${workspaceFolder}'; Action='Build'}; if($cfg){$params.Configuration=$cfg}; & '${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1' @params"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "as-build",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "code": 4,
+                    "message": 5
+                }
+            },
+            "detail": "Build with prompts for configuration"
+        },
+        {
+            "label": "AS: Transfer (Interactive)",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Transfer",
+                "-TargetIP", "${input:targetIP}"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": [],
+            "detail": "Transfer with prompt for target IP"
+        },
+        {
+            "label": "AS: Build and Transfer (Interactive)",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-Command",
+                "$cfg = '${input:configuration}'; $params = @{ProjectPath='${workspaceFolder}'; Action='BuildAndTransfer'; TargetIP='${input:targetIP}'}; if($cfg){$params.Configuration=$cfg}; & '${workspaceFolder}/.vscode/scripts/Invoke-ASBuild.ps1' @params"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "as-build",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "code": 4,
+                    "message": 5
+                }
+            },
+            "detail": "Build and transfer with prompts for configuration and target IP"
+        }
+    ]
+}
