@@ -62,19 +62,19 @@ PowerShell script for building and transferring B&R Automation Studio projects. 
 
 ```powershell
 # Build with auto-detection
-powershell -ExecutionPolicy Bypass -File .vscode/scripts/invoke-as-build.ps1 -ProjectPath .
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath .
 
 # Build all configurations
-powershell -ExecutionPolicy Bypass -File .vscode/scripts/invoke-as-build.ps1 -ProjectPath . -Configuration all
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Configuration all
 
 # Build with warnings visible
-powershell -ExecutionPolicy Bypass -File .vscode/scripts/invoke-as-build.ps1 -ProjectPath . -ShowWarnings
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -ShowWarnings
 
 # Build and transfer to specific PLC
-powershell -ExecutionPolicy Bypass -File .vscode/scripts/invoke-as-build.ps1 -ProjectPath . -Action BuildAndTransfer -TargetIP 192.168.1.100
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Action BuildAndTransfer -TargetIP 192.168.1.100
 
 # Transfer with custom install mode
-powershell -ExecutionPolicy Bypass -File .vscode/scripts/invoke-as-build.ps1 -ProjectPath . -Action Transfer -TargetIP 10.0.0.50 -InstallMode InstallDuringTaskOperation
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Action Transfer -TargetIP 10.0.0.50 -InstallMode InstallDuringTaskOperation
 ```
 
 ### Arguments:

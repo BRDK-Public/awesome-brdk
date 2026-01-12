@@ -98,9 +98,67 @@ You can use the [provided script](./install-certs-wsl.ps1) to fix this.
 
 This will trust your corporate root certificate inside WSL.
 
-#### 4. VS Code Integration
+#### 4. Connect Docker to Windows using Docker CLI
 
-1.  Connect VS Code to WSL (Click the remote indicator in the bottom left -> "Connect to WSL").
-2.  Install the **WSL** extension in VS Code.
-3.  Install the **Docker** extension in VS Code.
-4.  The Docker extension should now see the Docker engine running inside WSL.
+**In WSL add an override service to listen on a tcp port:**
+```bash
+sudo systemctl edit docker.service
+```
+
+**Add this in the override section:**
+```bash
+# Added after the first two lines of comments
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375
+```
+
+**Apply and restart Docker:**
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+**Verify Docker is listening on port 2375:**
+```bash
+# Command needs `net-tools` to be installed in wsl
+sudo netstat -tlnp | grep 2375
+```
+Should show: `tcp6  0  0  :::2375  :::*  LISTEN  <pid>/dockerd`
+
+
+**Install Docker CLI on Windows:**
+```powershell
+# In PowerShell (Admin)
+winget install Docker.DockerCLI
+```
+**Edit host file in Windows:**
+```powershell
+# In PowerShell (Admin)
+notepad C:\Windows\System32\drivers\etc\hosts
+```
+**Ensure these two lines exists and are not commented out:**
+```
+127.0.0.1       localhost
+::1             localhost
+```
+
+**Set the DOCKER_HOST Environment variable in Windows:**
+``` powershell
+# In PowerShell (Admin)
+[System.Environment]::SetEnvironmentVariable('DOCKER_HOST', 'tcp://localhost:2375', 'User')
+```
+
+**Verify that the default context is pointing to localhost:2375:**
+```powershell
+# In Windows PowerShell
+docker context list
+```
+
+**Restart the PC:**
+
+Then start WSL and VSCode
+
+#### 5. VS Code Integration
+
+1.  Install the **Docker** extension in VS Code.
+2.  The Docker extension should now see the Docker engine running inside WSL.
