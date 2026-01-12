@@ -1,7 +1,7 @@
 ---
 name: Code Review
 description: Perform a comprehensive code review comparing the current branch against the default branch.
-argument-hint: Optional: specify focus areas or files to review
+argument-hint: Optional - specify focus areas or files to review
 ---
 
 Perform a complete code review on the current branch compared to origin/main (or the default branch). Focus on the following categories:
