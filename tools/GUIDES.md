@@ -10,6 +10,8 @@ Commercial use of Docker Desktop in larger enterprises (more than 250 employees 
 
 Docker runs natively on Linux. We will use the default Ubuntu distribution for WSL, but other distributions work similarly but might need extra work.
 
+---
+
 #### 1. Install WSL
 
 Open PowerShell as Administrator and run:
@@ -25,6 +27,8 @@ This installs the default distribution (Ubuntu). Restart your computer if prompt
 *   To install a specific distro: `wsl --install -d <DistributionName>`
 
 **Tip:** You can create a profile for Ubuntu in the Windows Terminal app for easy access. Open the Terminal app and go to 'Settings'. Then Profiles -> Add a new profile. In the 'Command line' section add this: `wsl.exe -d Ubuntu`. This will give us a shortcut to the Ubuntu terminal.
+
+---
 
 #### 2. Install Docker Engine
 
@@ -86,6 +90,8 @@ sudo usermod -aG docker $USER
 
 You must close and reopen your terminal (or log out and back in) for this to take effect.
 
+---
+
 #### 3. Certificates (Zscaler / Corporate Proxy)
 
 If you are behind a corporate proxy like Zscaler, Docker and other tools inside WSL might fail to connect to the internet due to SSL errors.
@@ -95,8 +101,11 @@ You can use the [provided script](./install-certs-wsl.ps1) to fix this.
 1.  Open PowerShell.
 2.  Navigate to this tools directory.
 3.  Run: `.\install-certs-wsl.ps1`
+4.  Select the certificates you need. Type `all` for all the matched certificates.
 
 This will trust your corporate root certificate inside WSL.
+
+---
 
 #### 4. Connect Docker to Windows using Docker CLI
 
@@ -110,7 +119,7 @@ sudo systemctl edit docker.service
 # Added after the first two lines of comments
 [Service]
 ExecStart=
-ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://127.0.0.1:2375
 ```
 
 **Apply and restart Docker:**
@@ -123,7 +132,7 @@ sudo systemctl restart docker
 # Command needs `net-tools` to be installed in wsl
 sudo netstat -tlnp | grep 2375
 ```
-Should show: `tcp6  0  0  :::2375  :::*  LISTEN  <pid>/dockerd`
+Should show: `tcp  0  0  127.0.0.1:2375  0.0.0.0:*  LISTEN  <pid>/dockerd`
 
 
 **Install Docker CLI on Windows:**
@@ -131,21 +140,11 @@ Should show: `tcp6  0  0  :::2375  :::*  LISTEN  <pid>/dockerd`
 # In PowerShell (Admin)
 winget install Docker.DockerCLI
 ```
-**Edit host file in Windows:**
-```powershell
-# In PowerShell (Admin)
-notepad C:\Windows\System32\drivers\etc\hosts
-```
-**Ensure these two lines exists and are not commented out:**
-```
-127.0.0.1       localhost
-::1             localhost
-```
 
 **Set the DOCKER_HOST Environment variable in Windows:**
 ``` powershell
 # In PowerShell (Admin)
-[System.Environment]::SetEnvironmentVariable('DOCKER_HOST', 'tcp://localhost:2375', 'User')
+[System.Environment]::SetEnvironmentVariable('DOCKER_HOST', 'tcp://127.0.0.1:2375', 'User')
 ```
 
 **Verify that the default context is pointing to localhost:2375:**
@@ -162,3 +161,29 @@ Then start WSL and VSCode
 
 1.  Install the **Docker** extension in VS Code.
 2.  The Docker extension should now see the Docker engine running inside WSL.
+
+---
+#### Note: Working with Volumes
+When using Docker in WSL, you have several options for volume mounts:
+
+**Best Performance (Recommended):**
+```bash
+# Named volumes (managed by Docker, stored in WSL)
+docker volume create mydata
+docker run -v mydata:/app/data myimage
+
+# WSL filesystem paths (native Linux performance)
+docker run -v /home/user/project:/app/data myimage
+```
+
+**Cross-Platform Access (Slower):**
+```bash
+# From WSL - Windows filesystem via /mnt/c
+docker run -v /mnt/c/Users/username/data:/app/data myimage
+
+# From Windows PowerShell - Docker CLI auto-converts paths
+docker run -v C:\Users\username\data:/app/data myimage
+# CLI converts to: /mnt/c/Users/username/data
+```
+
+**Performance tip:** Use named volumes or WSL paths for best I/O performance. Only use Windows paths (/mnt/c/) when you need to share files between Windows applications and containers.
