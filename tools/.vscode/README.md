@@ -1,6 +1,6 @@
 # AS Compile Tasks
 
-VS Code tasks for building and transferring B&R Automation Studio projects with advanced features.
+VS Code tasks for building and transferring B&R Automation Studio projects.
 
 ## Features
 
@@ -8,7 +8,6 @@ VS Code tasks for building and transferring B&R Automation Studio projects with 
 - **Version matching** - Selects correct AS version for project
 - **Configuration discovery** - Parses project to find all configurations
 - **Build all configurations** in one task
-- **Warning threshold** - Fail build if warnings exceed limit
 - **Auto-generated PIL files** - No manual PIL file needed for transfers
 - **Problem matcher** - Errors/warnings appear in VS Code Problems panel
 - **Colored output** with error/warning counts
@@ -33,30 +32,29 @@ MyMachine/
     ├── tasks.json
     ├── README.md
     └── scripts/
-        └── Invoke-ASBuild.ps1
+        └── invoke-as-build.ps1
 ```
 
 ## Available Tasks
 
-### Automated Tasks (for runTask)
+### Standard Tasks
 
 | Task Label | Description |
 |------------|-------------|
-| `AS: Build` | Build with auto-detected AS version and configuration |
+| `AS: Build` | Build with auto-detected AS version and configuration (default) |
 | `AS: Build All Configurations` | Build all configurations in project |
 | `AS: Rebuild` | Force complete rebuild |
 | `AS: Clean` | Remove Temp, Binaries, Diagnosis |
 | `AS: Transfer` | Transfer to localhost/ARsim (auto-generates PIL) |
 | `AS: Build and Transfer` | Build and transfer to localhost/ARsim |
-| `AS: Build with Warning Limit` | Build with warning threshold enforcement |
 
 ### Interactive Tasks
 
 | Task Label | Prompts For |
 |------------|-------------|
-| `AS: Build (Interactive)` | Configuration name |
+| `AS: Build (Interactive)` | Configuration name, show warnings |
 | `AS: Transfer (Interactive)` | Target IP address |
-| `AS: Build and Transfer (Interactive)` | Configuration and target IP |
+| `AS: Build and Transfer (Interactive)` | Configuration, target IP, show warnings |
 
 ## Running Tasks
 
@@ -68,51 +66,20 @@ MyMachine/
 
 Or use `Ctrl+Shift+B` to run the default build task (`AS: Build`).
 
-### Programmatically (runTask)
-
-Use the exact task label:
+### From Command Palette
 
 ```
-AS: Build
-AS: Build All Configurations
-AS: Rebuild
-AS: Clean
-AS: Transfer
-AS: Build and Transfer
-AS: Build with Warning Limit
+Tasks: Run Task → AS: Build
+Tasks: Run Task → AS: Build and Transfer
 ```
 
-## PowerShell Script Parameters
+## Output Behavior
 
-The `Invoke-ASBuild.ps1` script supports these parameters:
+- **Errors** are always displayed (in red)
+- **Warnings** are hidden by default, use Interactive tasks to show them
+- Build summary shows error/warning counts per configuration
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `-ProjectPath` | Path to project directory | Required |
-| `-Configuration` | Config name or "all" | Auto-detect |
-| `-Action` | Build, Rebuild, Clean, Transfer, BuildAndTransfer | Build |
-| `-MaxWarnings` | Warning threshold (-1 = disabled) | -1 |
-| `-TargetIP` | Target IP for transfer | 127.0.0.1 |
-| `-InstallMode` | Consistent or InstallDuringTaskOperation | Consistent |
-| `-PILFile` | Custom PIL file (optional) | Auto-generate |
-| `-NoClean` | Skip cleaning before build | false |
-| `-BuildPIP` | Generate Project Installation Package | false |
 
-### Direct Script Usage
-
-```powershell
-# Build with auto-detection
-.\scripts\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine"
-
-# Build all configurations with warning limit
-.\scripts\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Configuration "all" -MaxWarnings 10
-
-# Build and transfer to specific PLC
-.\scripts\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Action BuildAndTransfer -TargetIP "192.168.1.100"
-
-# Transfer with custom install mode
-.\scripts\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Action Transfer -TargetIP "10.0.0.50" -InstallMode "InstallDuringTaskOperation"
-```
 
 ## How It Works
 
@@ -133,14 +100,12 @@ If no configuration is specified, it reads `LastUser.set` for the active configu
 
 ### Auto-Generated PIL Files
 
-For transfer operations, the script auto-generates a PIL file if none is provided:
+For transfer operations, the script auto-generates a PIL file:
 
 ```
-Connection "Cpu", "/IF=TcpIp /IP=<TargetIP>", "/AM=* /SDT=5 /DAESSION=1"
+Connection "Cpu", "/IF=TcpIp /IP=<TargetIP>", "/AM=* /SDT=5 /DASESSION=1"
 Transfer "<RUCPackage>", "InstallMode=<Mode> ..."
 ```
-
-This eliminates the need for manually creating PIL files.
 
 ### Problem Matcher
 
@@ -161,20 +126,26 @@ Edit tasks.json and modify the `-TargetIP` argument:
 "-TargetIP", "192.168.1.100"
 ```
 
-### Add Custom Warning Limit
-
-Create a new task or modify existing:
-
-```json
-"-MaxWarnings", "20"
-```
-
 ### Use Specific Configuration
 
 Add `-Configuration` argument:
 
 ```json
 "-Configuration", "SimPC"
+```
+
+### Always Show Warnings
+
+Add `-ShowWarnings` to the task args:
+
+```json
+"args": [
+    "-ExecutionPolicy", "Bypass",
+    "-File", "${workspaceFolder}/.vscode/scripts/invoke-as-build.ps1",
+    "-ProjectPath", "${workspaceFolder}",
+    "-Action", "Build",
+    "-ShowWarnings"
+]
 ```
 
 ## Troubleshooting
@@ -195,3 +166,8 @@ Add `-Configuration` argument:
 - Verify PLC/ARsim is running and reachable
 - Check target IP address
 - Ensure PVI is installed and licensed
+
+### Transfer skipped due to build errors
+
+- This is expected behavior for BuildAndTransfer
+- Fix the build errors shown in output and run again

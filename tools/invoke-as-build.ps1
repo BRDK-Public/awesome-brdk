@@ -8,7 +8,6 @@
     - Project version matching to installed AS version
     - Configuration discovery from project files
     - Build all configurations support
-    - Warning threshold enforcement
     - Auto-generation of PIL files for transfer
     - Colored error/warning output with counts
 
@@ -23,9 +22,8 @@
     The action to perform: Build, Transfer, BuildAndTransfer, Clean, Rebuild
     Default: Build
 
-.PARAMETER MaxWarnings
-    Maximum allowed warnings. Build fails if exceeded. -1 disables check.
-    Default: -1
+.PARAMETER ShowWarnings
+    Show warnings in output. By default only errors are displayed.
 
 .PARAMETER PILFile
     Path to PIL file for transfer. If not specified, auto-generates one.
@@ -48,7 +46,7 @@
     .\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine"
 
 .EXAMPLE
-    .\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Configuration "all" -MaxWarnings 10
+    .\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Configuration "all" -ShowWarnings
 
 .EXAMPLE
     .\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Action BuildAndTransfer -TargetIP "192.168.1.100"
@@ -69,7 +67,7 @@ param(
     [string]$Action = "Build",
 
     [Parameter()]
-    [int]$MaxWarnings = -1,
+    [switch]$ShowWarnings,
 
     [Parameter()]
     [string]$PILFile,
@@ -403,7 +401,10 @@ function Write-BuildOutput {
     .SYNOPSIS
         Parses and displays build output with colored errors/warnings
     #>
-    param([string[]]$Output)
+    param(
+        [string[]]$Output,
+        [switch]$IncludeWarnings
+    )
     
     $errorPattern = '.*error \d+:.*'
     $warningPattern = '.*warning \d+:.*'
@@ -412,7 +413,7 @@ function Write-BuildOutput {
         if ($line -match $errorPattern) {
             Write-Host $line -ForegroundColor Red
         }
-        elseif ($line -match $warningPattern) {
+        elseif ($IncludeWarnings -and $line -match $warningPattern) {
             Write-Host $line -ForegroundColor Yellow
         }
     }
@@ -502,7 +503,8 @@ function Invoke-Build {
         [string]$TempPath,
         [string]$OutputPath,
         [bool]$Clean,
-        [bool]$Rebuild
+        [bool]$Rebuild,
+        [bool]$ShowWarnings = $false
     )
     
     $configName = $Config.Name
@@ -543,7 +545,7 @@ function Invoke-Build {
     }
     
     $counts = Get-BuildCounts -Output $stdout
-    Write-BuildOutput -Output $stdout
+    Write-BuildOutput -Output $stdout -IncludeWarnings:$ShowWarnings
     
     if ($counts.Errors -gt 0 -or $counts.Warnings -gt 0) {
         Write-Host "`nBuild Summary: $($counts.Errors) error(s), $($counts.Warnings) warning(s)" -ForegroundColor $(if ($counts.Errors -gt 0) { "Red" } else { "Yellow" })
@@ -718,7 +720,7 @@ switch ($Action) {
     "Build" {
         foreach ($config in $configsToBuild) {
             $result = Invoke-Build -BuildExe $buildExe -ProjectFile $projectFile -Config $config `
-                -TempPath $tempPath -OutputPath $outputPath -Clean (-not $NoClean) -Rebuild $false
+                -TempPath $tempPath -OutputPath $outputPath -Clean (-not $NoClean) -Rebuild $false -ShowWarnings $ShowWarnings
             $buildResults += $result
             
             if ($result.ExitCode -ne 0) {
@@ -750,7 +752,7 @@ switch ($Action) {
     "Rebuild" {
         foreach ($config in $configsToBuild) {
             $result = Invoke-Build -BuildExe $buildExe -ProjectFile $projectFile -Config $config `
-                -TempPath $tempPath -OutputPath $outputPath -Clean $true -Rebuild $true
+                -TempPath $tempPath -OutputPath $outputPath -Clean $true -Rebuild $true -ShowWarnings $ShowWarnings
             $buildResults += $result
             
             if ($result.ExitCode -ne 0) {
@@ -791,20 +793,23 @@ switch ($Action) {
     
     "BuildAndTransfer" {
         # Build first
+        $buildHadErrors = $false
         foreach ($config in $configsToBuild) {
             $result = Invoke-Build -BuildExe $buildExe -ProjectFile $projectFile -Config $config `
-                -TempPath $tempPath -OutputPath $outputPath -Clean (-not $NoClean) -Rebuild $false
+                -TempPath $tempPath -OutputPath $outputPath -Clean (-not $NoClean) -Rebuild $false -ShowWarnings $ShowWarnings
             $buildResults += $result
             
-            if ($result.ExitCode -ne 0) {
-                $exitCode = $result.ExitCode
-                Write-Failure "Build failed. Transfer skipped."
-                break
+            if ($result.Errors -gt 0) {
+                $buildHadErrors = $true
             }
         }
         
-        # Transfer if build succeeded
-        if ($exitCode -eq 0) {
+        # Transfer only if build had no errors
+        if ($buildHadErrors) {
+            Write-Host "`n[INFO] Transfer skipped due to build errors." -ForegroundColor Yellow
+            Write-Host "       Fix the errors above and run again." -ForegroundColor Yellow
+        }
+        else {
             $config = $configsToBuild | Select-Object -First 1
             
             if ($PILFile -and (Test-Path $PILFile)) {
@@ -817,13 +822,14 @@ switch ($Action) {
                 New-TransferPIL -RUCPackagePath $rucPackage -TargetIP $TargetIP -InstallMode $InstallMode -OutputPath $pilToUse
             }
             
-            $exitCode = Invoke-Transfer -TransferExe $transferExe -PILFile $pilToUse
+            $transferResult = Invoke-Transfer -TransferExe $transferExe -PILFile $pilToUse
             
-            if ($exitCode -eq 0) {
+            if ($transferResult -eq 0) {
                 Write-Success "Transfer completed successfully"
             }
             else {
-                Write-Failure "Transfer failed with exit code: $exitCode"
+                Write-Failure "Transfer failed with exit code: $transferResult"
+                $exitCode = $transferResult
             }
         }
     }
@@ -843,12 +849,6 @@ if ($buildResults.Count -gt 0) {
     }
     
     Write-Host "`nTotal: $totalErrors error(s), $totalWarnings warning(s)"
-    
-    # Check warning threshold
-    if ($MaxWarnings -ge 0 -and $totalWarnings -gt $MaxWarnings) {
-        Write-Failure "Warning threshold exceeded! Max: $MaxWarnings, Actual: $totalWarnings"
-        $exitCode = 1
-    }
 }
 
 Write-Host ("=" * 60) -ForegroundColor Yellow

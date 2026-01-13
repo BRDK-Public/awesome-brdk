@@ -1,141 +1,102 @@
 ---
 name: as-compile
-description: Build and transfer B&R Automation Studio projects to a PLC or simulator using VS Code tasks. Use when compiling Automation Studio projects, creating RUC packages, transferring to PLCs, or cleaning build artifacts.
+description: Build and transfer B&R Automation Studio projects to a PLC or ARsim simulator. Use when compiling AS projects, creating RUC packages, transferring to PLCs, cleaning build artifacts, or when user mentions build, compile, transfer, deploy, or download to PLC.
+compatibility: Windows only. Requires B&R Automation Studio 4.x/6.x and PVI installed. PowerShell 5.1+.
+metadata:
+  author: brdk
+  version: "1.0"
 ---
 
 # AS Compile
 
-This skill enables building and transferring B&R Automation Studio projects using VS Code tasks. It provides auto-detection of AS/PVI installations, configuration discovery, and auto-generated PIL files for transfers.
+Build and transfer B&R Automation Studio projects using PowerShell with auto-detection of AS/PVI installations, configuration discovery, and auto-generated PIL files.
 
 ## When to Use This Skill
 
-Use this skill when you need to:
-- Build an Automation Studio project from VS Code
+- Build an Automation Studio project
 - Build all configurations in a project
-- Use the output to read build errors and correct them
+- Read build errors and fix them in source code
 - Generate a RUC package for deployment
-- Transfer a compiled project to a PLC or simulator
-- Enforce warning thresholds (quality gates)
-- Clean build artifacts (temporary files, binaries, diagnostics)
+- Transfer a compiled project to a PLC or ARsim simulator
+- Clean build artifacts (Temp, Binaries, Diagnosis)
 
-## Prerequisites
+## Script
 
-- B&R Automation Studio 4.x or 6.x installed
-- PVI 4.x or 6.x installed (for transfer operations)
-- PowerShell 5.1 or later
-- VS Code with the `.vscode` folder configured
+Run the build script from the project root:
 
-## Core Capabilities
-
-### 1. Build Project
-Compile the project with automatic AS version detection and configuration discovery.
-
-```
-Run task: AS: Build
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath <project-path> [options]
 ```
 
-### 2. Build All Configurations
-Build every configuration defined in the project.
+## Parameters
 
-```
-Run task: AS: Build All Configurations
-```
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `-ProjectPath` | Path to AS project directory (required) | - |
+| `-Action` | Build, Transfer, BuildAndTransfer, Clean, Rebuild | Build |
+| `-Configuration` | Configuration name, or "all" for all | Auto-detect |
+| `-TargetIP` | IP address for transfer | 127.0.0.1 |
+| `-ShowWarnings` | Display warnings in output | Off |
+| `-NoClean` | Skip cleaning before build | Off |
+| `-InstallMode` | Consistent or InstallDuringTaskOperation | Consistent |
+| `-PILFile` | Custom PIL file path | Auto-generate |
+| `-BuildPIP` | Generate Project Installation Package | Off |
 
-### 3. Rebuild Project
-Force a complete rebuild with clean.
+## Examples
 
-```
-Run task: AS: Rebuild
-```
-
-### 4. Clean Project
-Remove all build artifacts (Temp, Binaries, Diagnosis folders).
-
-```
-Run task: AS: Clean
-```
-
-### 5. Transfer to PLC
-Transfer to a PLC or ARsim. PIL file is auto-generated.
-
-```
-Run task: AS: Transfer
+### Build Project
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath .
 ```
 
-### 6. Build and Transfer
-Build and transfer in a single operation.
-
-```
-Run task: AS: Build and Transfer
+### Build All Configurations
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Configuration all
 ```
 
-### 7. Build with Warning Limit
-Build with quality gate - fails if warnings exceed threshold.
-
-```
-Run task: AS: Build with Warning Limit
+### Rebuild (Clean + Build)
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Action Rebuild
 ```
 
-## Usage Examples
+### Clean Build Artifacts
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Action Clean
+```
 
-### Example 1: Simple Build
+### Transfer to ARsim (localhost)
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Action Transfer
 ```
-Run task: AS: Build
-```
-Auto-detects AS version and configuration from LastUser.set.
 
-### Example 2: Build All Configurations
+### Build and Transfer to PLC
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Action BuildAndTransfer -TargetIP 192.168.1.100
 ```
-Run task: AS: Build All Configurations
-```
-Builds every configuration in the project for CI/CD validation.
 
-### Example 3: Deploy to ARsim
-```
-Run task: AS: Build and Transfer
-```
-Builds and transfers to localhost (127.0.0.1).
-
-### Example 4: Deploy to Physical PLC
-```
-Run task: AS: Build and Transfer (Interactive)
-Enter configuration: MyConfig
-Enter IP: 192.168.1.100
+### Build with Warnings Visible
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -ShowWarnings
 ```
 
 ## Guidelines
 
-1. **Let auto-detection work** - AS/PVI paths and versions are detected automatically from registry
-2. **Use Build All Configurations** - For CI/CD pipelines to validate all configs compile
-3. **Set warning limits** - Use warning threshold for quality gates in automated builds
-4. **No PIL file needed** - Transfers auto-generate PIL files based on target IP
-5. **Fix Build errors in the code** - When output indicate an error in the source code files (like: \Logical\Main\Main\Main.st: (Ln: 182, Col: 5) error 1126:Expecting ';' or ':=' before 'END_FOR'.), fix them and perform a new build  
-6. **Use Clean for strange errors** - When encountering unexplained build errors
+1. **Auto-detection** - AS/PVI paths and versions are detected from Windows registry
+2. **Configuration discovery** - Active config read from LastUser.set, or use first available
+3. **Fix errors in code** - Build errors like `error 1126: Expecting ';'` indicate source file issues
+4. **Transfer skips on errors** - BuildAndTransfer shows info message if build has errors
+5. **Use Clean for strange errors** - Resolves unexplained build failures
+6. **No PIL file needed** - Transfers auto-generate PIL based on target IP
 
-## Common Patterns
+## Output
 
-### Pattern: CI/CD Build All
-```
-Run task: AS: Build All Configurations
-```
-Builds every configuration to ensure all variants compile.
-
-### Pattern: Quality Gate Build
-```
-Run task: AS: Build with Warning Limit
-Enter: 0
-```
-Fails build if any warnings exist (zero-warning policy).
-
-### Pattern: Clean Rebuild and Transfer
-```
-Run task: AS: Clean
-Run task: AS: Build and Transfer
-```
+- Errors displayed in red (always shown)
+- Warnings displayed in yellow (only with `-ShowWarnings`)
+- Build summary shows error/warning counts per configuration
+- Exit code 0 on success, non-zero on failure
 
 ## Limitations
 
-- Requires B&R Automation Studio and PVI to be installed locally
+- Windows only (registry-based AS/PVI detection)
+- Requires B&R Automation Studio and PVI installed locally
 - PowerShell 5.1 or later required
-- Windows only (registry-based detection)
-- Tasks must be run from VS Code
