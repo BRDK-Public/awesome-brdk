@@ -136,10 +136,24 @@ Should show: `tcp  0  0  127.0.0.1:2375  0.0.0.0:*  LISTEN  <pid>/dockerd`
 
 
 **Install Docker CLI on Windows:**
+
+If WinGet is available:
 ```powershell
 # In PowerShell (Admin)
 winget install Docker.DockerCLI
 ```
+
+If WinGet is NOT available (e.g., on B&R laptops):
+1. Download the latest Docker CLI binaries from [https://github.com/docker/cli/releases](https://github.com/docker/cli/releases)
+2. Extract the archive and locate `docker.exe`
+3. Add the directory containing `docker.exe` to your Windows PATH environment variable:
+   - Right-click on 'This PC' or 'My Computer' and select 'Properties'
+   - Click on 'Advanced system settings'
+   - Click on 'Environment Variables'
+   - Under 'User variables', find and select 'Path', then click 'Edit'
+   - Click 'New' and add the path to the directory containing `docker.exe`
+   - Click 'OK' to save all changes
+   - Restart PowerShell for changes to take effect
 
 **Set the DOCKER_HOST Environment variable in Windows:**
 ``` powershell
@@ -149,15 +163,35 @@ winget install Docker.DockerCLI
 
 **Verify that the default context is pointing to localhost:2375:**
 ```powershell
-# In Windows PowerShell
+# In a new Windows PowerShell
 docker context list
 ```
 
-**Restart the PC:**
+---
 
-Then start WSL and VSCode
+#### 5. Install Docker Compose Plugin
 
-#### 5. VS Code Integration
+The `docker-compose-plugin` package must be installed separately.
+
+**In WSL:**
+```bash
+sudo apt install docker-compose-plugin
+```
+
+**In Windows (if using Docker CLI without WinGet):**
+1. Download the latest Docker Compose plugin from [https://github.com/docker/compose/releases](https://github.com/docker/compose/releases)
+2. Create the directory `%USERPROFILE%\.docker\cli-plugins\` if it doesn't exist
+3. Place the downloaded file in that directory and rename it to `docker-compose.exe`
+
+**Verify installation:**
+```bash
+# In WSL or Windows PowerShell
+docker compose version
+```
+
+---
+
+#### 6. VS Code Integration
 
 1.  Install the **Docker** extension in VS Code.
 2.  The Docker extension should now see the Docker engine running inside WSL.
