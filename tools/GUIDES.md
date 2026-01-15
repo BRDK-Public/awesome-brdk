@@ -178,7 +178,15 @@ The `docker-compose-plugin` package must be installed separately.
 sudo apt install docker-compose-plugin
 ```
 
-**In Windows (if using Docker CLI without WinGet):**
+**In Windows:**
+
+If WinGet is available:
+```powershell
+# In PowerShell (Admin)
+winget install Docker.DockerCompose
+```
+
+If WinGet is NOT available (e.g., on B&R laptops):
 1. Download the latest Docker Compose plugin from [https://github.com/docker/compose/releases](https://github.com/docker/compose/releases)
 2. Create the directory `%USERPROFILE%\.docker\cli-plugins\` if it doesn't exist
 3. Place the downloaded file in that directory and rename it to `docker-compose.exe`
@@ -188,6 +196,8 @@ sudo apt install docker-compose-plugin
 # In WSL or Windows PowerShell
 docker compose version
 ```
+
+**Note:** Other Docker plugins such as Docker Buildx (`docker-buildx-plugin`) follow the same installation procedure. For WinGet, use the appropriate package name (e.g., `winget install Docker.DockerBuildx`). For manual installation, download the plugin from its respective GitHub releases page and place it in the `cli-plugins` directory with the correct naming convention (e.g., `docker-buildx.exe`).
 
 ---
 
