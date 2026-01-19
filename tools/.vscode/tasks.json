@@ -14,12 +14,13 @@
             "default": "127.0.0.1"
         },
         {
-            "id": "showWarnings",
+            "id": "silenceOutput",
             "type": "pickString",
-            "description": "Show warnings in output?",
-            "options": ["no", "yes"],
-            "default": "no"
+            "description": "Silence info and warnings? (Only select 'no' when you want to see full build output)",
+            "options": ["yes", "no"],
+            "default": "yes"
         }
+    
     ],
     "tasks": [
         {
@@ -44,19 +45,33 @@
                 "showReuseMessage": false,
                 "clear": true
             },
-            "problemMatcher": {
-                "owner": "as-build",
-                "fileLocation": ["relative", "${workspaceFolder}"],
-                "pattern": {
-                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "code": 4,
-                    "message": 5
+            "problemMatcher": [
+                {
+                    "owner": "as-build",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
+                },
+                {
+                    "owner": "as-build-warnings",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*):\\s+\\(Ln:\\s+(\\d+)\\)\\s+(error|warning)\\s+(\\d+):(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
                 }
-            },
-            "detail": "Build project with auto-detected AS version and configuration"
+            ],
+            "detail": "Build project (silent mode - shows only errors)"
         },
         {
             "label": "AS: Build All Configurations",
@@ -78,19 +93,33 @@
                 "showReuseMessage": false,
                 "clear": true
             },
-            "problemMatcher": {
-                "owner": "as-build",
-                "fileLocation": ["relative", "${workspaceFolder}"],
-                "pattern": {
-                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "code": 4,
-                    "message": 5
+            "problemMatcher": [
+                {
+                    "owner": "as-build",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
+                },
+                {
+                    "owner": "as-build-warnings",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*):\\s+\\(Ln:\\s+(\\d+)\\)\\s+(error|warning)\\s+(\\d+):(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
                 }
-            },
-            "detail": "Build all configurations in the project"
+            ],
+            "detail": "Build all configurations (shows only errors)"
         },
         {
             "label": "AS: Rebuild",
@@ -111,19 +140,33 @@
                 "showReuseMessage": false,
                 "clear": true
             },
-            "problemMatcher": {
-                "owner": "as-build",
-                "fileLocation": ["relative", "${workspaceFolder}"],
-                "pattern": {
-                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "code": 4,
-                    "message": 5
+            "problemMatcher": [
+                {
+                    "owner": "as-build",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
+                },
+                {
+                    "owner": "as-build-warnings",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*):\\s+\\(Ln:\\s+(\\d+)\\)\\s+(error|warning)\\s+(\\d+):(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
                 }
-            },
-            "detail": "Force complete rebuild of the project"
+            ],
+            "detail": "Force complete rebuild (shows only errors)"
         },
         {
             "label": "AS: Clean",
@@ -190,19 +233,33 @@
                 "showReuseMessage": false,
                 "clear": true
             },
-            "problemMatcher": {
-                "owner": "as-build",
-                "fileLocation": ["relative", "${workspaceFolder}"],
-                "pattern": {
-                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "code": 4,
-                    "message": 5
+            "problemMatcher": [
+                {
+                    "owner": "as-build",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
+                },
+                {
+                    "owner": "as-build-warnings",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*):\\s+\\(Ln:\\s+(\\d+)\\)\\s+(error|warning)\\s+(\\d+):(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
                 }
-            },
-            "detail": "Build and transfer to localhost/ARsim"
+            ],
+            "detail": "Build and transfer to localhost/ARsim (shows only errors)"
         },
         {
             "label": "AS: Build (Interactive)",
@@ -210,8 +267,10 @@
             "command": "powershell",
             "args": [
                 "-ExecutionPolicy", "Bypass",
-                "-Command",
-                "$cfg = '${input:configuration}'; $sw = '${input:showWarnings}'; $params = @{ProjectPath='${workspaceFolder}'; Action='Build'}; if($cfg){$params.Configuration=$cfg}; if($sw -eq 'yes'){$params.ShowWarnings=$true}; & '${workspaceFolder}/.vscode/scripts/invoke-as-build.ps1' @params"
+                "-File", "${workspaceFolder}/.vscode/scripts/invoke-as-build.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "Build",
+                "-SilenceOutput", "${input:silenceOutput}"
             ],
             "group": "build",
             "presentation": {
@@ -222,19 +281,33 @@
                 "showReuseMessage": false,
                 "clear": true
             },
-            "problemMatcher": {
-                "owner": "as-build",
-                "fileLocation": ["relative", "${workspaceFolder}"],
-                "pattern": {
-                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "code": 4,
-                    "message": 5
+            "problemMatcher": [
+                {
+                    "owner": "as-build",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
+                },
+                {
+                    "owner": "as-build-warnings",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*):\\s+\\(Ln:\\s+(\\d+)\\)\\s+(error|warning)\\s+(\\d+):(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
                 }
-            },
-            "detail": "Build with prompts for configuration and optional warnings display"
+            ],
+            "detail": "Build with options. Set silenceOutput to 'no' to see full build output."
         },
         {
             "label": "AS: Transfer (Interactive)",
@@ -265,8 +338,11 @@
             "command": "powershell",
             "args": [
                 "-ExecutionPolicy", "Bypass",
-                "-Command",
-                "$cfg = '${input:configuration}'; $sw = '${input:showWarnings}'; $params = @{ProjectPath='${workspaceFolder}'; Action='BuildAndTransfer'; TargetIP='${input:targetIP}'}; if($cfg){$params.Configuration=$cfg}; if($sw -eq 'yes'){$params.ShowWarnings=$true}; & '${workspaceFolder}/.vscode/scripts/invoke-as-build.ps1' @params"
+                "-File", "${workspaceFolder}/.vscode/scripts/invoke-as-build.ps1",
+                "-ProjectPath", "${workspaceFolder}",
+                "-Action", "BuildAndTransfer",
+                "-TargetIP", "${input:targetIP}",
+                "-SilenceOutput", "${input:silenceOutput}"
             ],
             "group": "build",
             "presentation": {
@@ -277,19 +353,33 @@
                 "showReuseMessage": false,
                 "clear": true
             },
-            "problemMatcher": {
-                "owner": "as-build",
-                "fileLocation": ["relative", "${workspaceFolder}"],
-                "pattern": {
-                    "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "code": 4,
-                    "message": 5
+            "problemMatcher": [
+                {
+                    "owner": "as-build",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning)\\s+(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
+                },
+                {
+                    "owner": "as-build-warnings",
+                    "fileLocation": ["absolute"],
+                    "pattern": {
+                        "regexp": "^(.*):\\s+\\(Ln:\\s+(\\d+)\\)\\s+(error|warning)\\s+(\\d+):(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "severity": 3,
+                        "code": 4,
+                        "message": 5
+                    }
                 }
-            },
-            "detail": "Build and transfer with prompts for configuration, target IP, and optional warnings display"
+            ],
+            "detail": "Build and transfer with options. Set silenceOutput to 'no' to see full build output."
         }
     ]
 }

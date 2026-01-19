@@ -4,15 +4,35 @@
 
 .DESCRIPTION
     This script wraps BR.AS.Build.exe and PVITransfer.exe to provide:
+    - Auto-detection of AS project in workspace (root or one level down)
     - Auto-detection of AS/PVI installation from Windows registry
     - Project version matching to installed AS version
     - Configuration discovery from project files
     - Build all configurations support
+    - Warning threshold enforcement
     - Auto-generation of PIL files for transfer
-    - Colored error/warning output with counts
+    - Clean terminal output (only errors by default)
+    - Dynamic status line showing E:errors W:warnings I:info count
+
+    OUTPUT BEHAVIOR:
+    By default, only ERRORS are displayed. This keeps the terminal clean and focused
+    on what matters for compilation success. Warnings and build info are hidden unless
+    explicitly requested.
+
+    - Errors: Always shown (red) - these prevent successful compilation
+    - Warnings: Hidden by default - use -SilenceOutput no to show warnings
+    - Build Info: Hidden by default - use -SilenceOutput no to show build details
+
+    WARNING DETECTION:
+    Unused variable warnings (warning 5874) and other code quality warnings are only
+    generated during full builds/rebuilds when code is actually compiled. Incremental
+    builds that skip unchanged files will NOT report these warnings. Use "Rebuild" or
+    clean and build to see all warnings.
 
 .PARAMETER ProjectPath
-    Path to the Automation Studio project directory (containing .apj file)
+    Path to the Automation Studio project directory (containing .apj file) or
+    a workspace directory. If a workspace directory is provided, the script will
+    search for .apj files in the root and one level down in subdirectories.
 
 .PARAMETER Configuration
     Configuration name to build. Use "all" to build all configurations.
@@ -20,10 +40,24 @@
 
 .PARAMETER Action
     The action to perform: Build, Transfer, BuildAndTransfer, Clean, Rebuild
+    - Build: Incremental build (fast, recompiles changed files only)
+    - Rebuild: Clean and full rebuild (shows all warnings for recompiled code)
+    - Transfer: Transfer RUC package to PLC
+    - BuildAndTransfer: Build then transfer
+    - Clean: Clean build artifacts
     Default: Build
 
-.PARAMETER ShowWarnings
-    Show warnings in output. By default only errors are displayed.
+.PARAMETER SilenceOutput
+    When enabled (default "yes"), only errors are shown. Warnings and build info are hidden.
+    Set to "no" (-SilenceOutput no) to see full build output including warnings.
+    Only disable when specifically debugging build issues or optimizing warnings.
+    Warnings do NOT prevent compilation - only errors matter for build success.
+    Accepts: "yes", "no", "true", "false" (default: "yes" - silent mode)
+
+.PARAMETER MaxWarnings
+    Maximum allowed warnings before build fails. Use for CI/CD pipelines.
+    Set to -1 to disable warning threshold check.
+    Default: -1 (disabled)
 
 .PARAMETER PILFile
     Path to PIL file for transfer. If not specified, auto-generates one.
@@ -42,14 +76,34 @@
 .PARAMETER BuildPIP
     Generate a Project Installation Package after build
 
-.EXAMPLE
-    .\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine"
+.PARAMETER DebugLog
+    When specified, logs all build output to a timestamped file in %TEMP% folder.
+    Useful for debugging message classification (errors vs warnings vs info).
+    File format: as_build_debug_YYYYMMDD_HHMMSS.log
 
 .EXAMPLE
-    .\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Configuration "all" -ShowWarnings
+    .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace"
+    # Auto-detects project in workspace - shows only errors
 
 .EXAMPLE
-    .\Invoke-ASBuild.ps1 -ProjectPath "C:\Projects\MyMachine" -Action BuildAndTransfer -TargetIP "192.168.1.100"
+    .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace\MyProject"
+    # Direct project path - shows only errors
+
+.EXAMPLE
+    .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace" -SilenceOutput no
+    # Shows full output including warnings and build info
+
+.EXAMPLE
+    .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace" -Action BuildAndTransfer -TargetIP "192.168.1.100"
+    # Build and transfer to PLC
+
+.EXAMPLE
+    .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace" -MaxWarnings 10
+    # Fail build if more than 10 warnings (for CI/CD pipelines)
+
+.EXAMPLE
+    .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace" -DebugLog
+    # Logs all build output to a timestamped file in %TEMP% for debugging message classification
 #>
 
 [CmdletBinding()]
@@ -67,7 +121,11 @@ param(
     [string]$Action = "Build",
 
     [Parameter()]
-    [switch]$ShowWarnings,
+    [ValidateSet("yes", "no", "true", "false", "")]
+    [string]$SilenceOutput = "yes",
+
+    [Parameter()]
+    [int]$MaxWarnings = -1,
 
     [Parameter()]
     [string]$PILFile,
@@ -80,11 +138,128 @@ param(
     [string]$InstallMode = "Consistent",
 
     [Parameter()]
+    [switch]$DebugLog,
+
+    [Parameter()]
     [switch]$NoClean,
 
     [Parameter()]
     [switch]$BuildPIP
 )
+
+# Normalize empty/whitespace-only Configuration to empty string
+if ([string]::IsNullOrWhiteSpace($Configuration)) {
+    $Configuration = ""
+}
+
+# Convert SilenceOutput string to boolean
+$SilenceOutputBool = $SilenceOutput -in @("yes", "true", "$true", "")
+
+#region Project Discovery
+
+function Find-ASProject {
+    <#
+    .SYNOPSIS
+        Finds an Automation Studio project (.apj file) in the given path or subdirectories.
+    .DESCRIPTION
+        Uses breadth-first search to find .apj files, checking directories level by level.
+        This optimizes for finding projects at shallow depths first, as .apj files are
+        typically not deeply nested. Returns the project directory path (not the .apj file path).
+    .PARAMETER SearchPath
+        The path to search for AS projects.
+    .PARAMETER MaxDepth
+        Maximum directory depth to search. Default is 10. Use -1 for unlimited.
+    .OUTPUTS
+        The project directory path, or $null if no project found.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$SearchPath,
+        
+        [int]$MaxDepth = 10
+    )
+    
+    # Normalize the path
+    $SearchPath = $SearchPath.TrimEnd('\', '/')
+    
+    # BFS queue: each entry is @{ Path = directory path; Depth = current depth }
+    $queue = [System.Collections.Queue]::new()
+    $queue.Enqueue(@{ Path = $SearchPath; Depth = 0 })
+    
+    $foundProjects = @()
+    $foundAtDepth = -1
+    
+    while ($queue.Count -gt 0) {
+        $current = $queue.Dequeue()
+        $currentPath = $current.Path
+        $currentDepth = $current.Depth
+        
+        # If we already found projects at a shallower depth, stop searching deeper
+        if ($foundAtDepth -ge 0 -and $currentDepth -gt $foundAtDepth) {
+            break
+        }
+        
+        # Check for .apj files in current directory
+        $apjFiles = Get-ChildItem -Path $currentPath -Filter "*.apj" -File -ErrorAction SilentlyContinue
+        if ($apjFiles) {
+            $foundProjects += @{
+                Path = $currentPath
+                ApjFile = $apjFiles[0].Name
+                HasLastUserSet = Test-Path (Join-Path $currentPath "LastUser.set")
+                Depth = $currentDepth
+            }
+            $foundAtDepth = $currentDepth
+            # Continue processing same depth level to find all projects at this depth
+            continue
+        }
+        
+        # Don't go deeper if we've reached max depth
+        if ($MaxDepth -ge 0 -and $currentDepth -ge $MaxDepth) {
+            continue
+        }
+        
+        # Enqueue subdirectories for next level
+        $subDirs = Get-ChildItem -Path $currentPath -Directory -ErrorAction SilentlyContinue
+        foreach ($dir in $subDirs) {
+            # Skip common non-project directories for performance
+            if ($dir.Name -in @('node_modules', '.git', '.vs', 'Temp', 'Binaries', 'Diagnosis')) {
+                continue
+            }
+            $queue.Enqueue(@{ Path = $dir.FullName; Depth = $currentDepth + 1 })
+        }
+    }
+    
+    if ($foundProjects.Count -eq 0) {
+        return $null
+    }
+    
+    if ($foundProjects.Count -eq 1) {
+        return $foundProjects[0].Path
+    }
+    
+    # Multiple projects found - prefer one with LastUser.set (recently opened)
+    $recentProject = $foundProjects | Where-Object { $_.HasLastUserSet } | Select-Object -First 1
+    if ($recentProject) {
+        return $recentProject.Path
+    }
+    
+    # Fallback to first found
+    return $foundProjects[0].Path
+}
+
+# Resolve the actual project path
+$resolvedProjectPath = Find-ASProject -SearchPath $ProjectPath
+
+if (-not $resolvedProjectPath) {
+    Write-Host "ERROR: No Automation Studio project (.apj file) found in:" -ForegroundColor Red
+    Write-Host "  - $ProjectPath (or any subdirectory)" -ForegroundColor Red
+    exit 1
+}
+
+# Update ProjectPath to the resolved path
+$ProjectPath = $resolvedProjectPath
+
+#endregion
 
 #region Classes and Types
 
@@ -98,6 +273,16 @@ class ASInstallation {
         $this.Path = $path
         $this.SharedPath = $sharedPath
     }
+}
+
+# BR.AS.Build.exe return values (from B&R documentation):
+# 0 = No errors or warnings
+# 1 = Warnings only (build succeeded)
+# 3 = Build error (build failed)
+enum ASBuildExitCode {
+    Success = 0
+    WarningsOnly = 1
+    BuildError = 3
 }
 
 class BuildResult {
@@ -168,11 +353,36 @@ function Get-InstalledASVersions {
 function Get-PVIPath {
     <#
     .SYNOPSIS
-        Discovers PVI installation path from Windows registry
+        Discovers PVI installation path
+    .PARAMETER ASPath
+        If specified, looks for PVI bundled with this AS installation first.
+        This ensures RUC package compatibility.
     #>
+    param(
+        [string]$ASPath = $null
+    )
+    
+    # First, try to use PVI bundled with the same AS version (for RUC compatibility)
+    if ($ASPath) {
+        # AS 4.x has PVI in a sibling folder: C:\Program Files\BRAutomation4\PVI\V4.12
+        $asParent = Split-Path $ASPath -Parent
+        $siblingPviPath = Join-Path $asParent "PVI"
+        if (Test-Path $siblingPviPath) {
+            # Find the version folder (e.g., V4.12)
+            $versionFolder = Get-ChildItem -Path $siblingPviPath -Directory | Where-Object { $_.Name -match '^V\d' } | Select-Object -First 1
+            if ($versionFolder) {
+                $pviToolsPath = Join-Path $versionFolder.FullName "PVI\Tools\PVITransfer\PVITransfer.exe"
+                if (Test-Path $pviToolsPath) {
+                    Write-Host "Using bundled PVI: $($versionFolder.FullName)" -ForegroundColor Green
+                    return $versionFolder.FullName
+                }
+            }
+        }
+    }
+    
     $regPath = "HKLM:\SOFTWARE\WOW6432Node"
     
-    # Try BR_PVI6 first
+    # Try BR_PVI6 first (standalone PVI installation)
     $pviKey = Join-Path $regPath "BR_PVI6"
     if (Test-Path $pviKey) {
         $path = (Get-ItemProperty -Path $pviKey -ErrorAction SilentlyContinue).InstallationPath
@@ -396,49 +606,193 @@ function Write-Failure {
     Write-Host "[FAILED] $Message" -ForegroundColor Red
 }
 
+function Write-BuildStatus {
+    <#
+    .SYNOPSIS
+        Writes a dynamic status line that updates in place
+    .DESCRIPTION
+        Uses carriage return to overwrite the same line repeatedly.
+        Call with -ClearLine to remove the status line before final output.
+    #>
+    param(
+        [int]$Errors = 0,
+        [int]$Warnings = 0,
+        [int]$Info = 0,
+        [switch]$ClearLine,
+        [switch]$NewLineAfter
+    )
+    
+    if ($ClearLine) {
+        # Clear the line completely
+        Write-Host "`r$(' ' * 60)`r" -NoNewline
+        return
+    }
+    
+    $errorColor = if ($Errors -gt 0) { "Red" } else { "DarkGray" }
+    $warningColor = if ($Warnings -gt 0) { "Yellow" } else { "DarkGray" }
+    
+    # Write status with carriage return to stay on same line
+    Write-Host "`r" -NoNewline
+    Write-Host "Building... " -NoNewline -ForegroundColor Cyan
+    Write-Host "E:$Errors " -NoNewline -ForegroundColor $errorColor
+    Write-Host "W:$Warnings " -NoNewline -ForegroundColor $warningColor
+    Write-Host "I:$Info" -NoNewline -ForegroundColor DarkGray
+    Write-Host "$(' ' * 20)" -NoNewline  # Padding to clear old content
+    
+    if ($NewLineAfter) {
+        Write-Host ""  # Add newline
+    }
+}
+
 function Write-BuildOutput {
     <#
     .SYNOPSIS
         Parses and displays build output with colored errors/warnings
+    .PARAMETER Output
+        The build output lines to process
+    .PARAMETER IncludeWarnings
+        If set, warning lines are displayed in yellow
+    .PARAMETER IncludeInfo
+        If set, all non-error/warning lines are displayed (verbose mode)
     #>
     param(
         [string[]]$Output,
-        [switch]$IncludeWarnings
+        [switch]$IncludeWarnings,
+        [switch]$IncludeInfo
     )
     
-    $errorPattern = '.*error \d+:.*'
-    $warningPattern = '.*warning \d+:.*'
-    
     foreach ($line in $Output) {
-        if ($line -match $errorPattern) {
+        $lineType = Get-LineType -Line $line
+        
+        if ($lineType -eq 'error') {
             Write-Host $line -ForegroundColor Red
         }
-        elseif ($IncludeWarnings -and $line -match $warningPattern) {
+        elseif ($IncludeWarnings -and $lineType -eq 'warning') {
             Write-Host $line -ForegroundColor Yellow
+        }
+        elseif ($IncludeInfo) {
+            # Show all other info lines when not in quiet mode
+            Write-Host $line
         }
     }
 }
 
-function Get-BuildCounts {
+function Get-LineType {
     <#
     .SYNOPSIS
-        Extracts error and warning counts from build output
+        Determines the type of a build output line
+    .PARAMETER Line
+        The line to analyze
+    .RETURNS
+        String indicating line type: 'error', 'warning', or 'info'
+    .NOTES
+        B&R build output has multiple warning/error formats:
+        
+        1. Standard AS warnings/errors (IEC-61131, MappView, etc.):
+           path: (location) warning NNNN:message
+           path: (location) error NNNN:message
+           Example: file.st: (Ln: 260, Col: 42) warning 1281:>= signed/unsigned mismatch.
+           
+        2. GCC/C++ compiler warnings/errors:
+           path: (Ln: N, Col: N) warning :message [-Wflag]
+           path: (Ln: N, Col: N) error :message
+           Example: file.cpp: (Ln: 805, Col: 9) warning :enumeration value 'X' not handled [-Wswitch]
+           
+        3. Package/project level warnings:
+           path: (item) warning NNNN:message
+           Example: Package.pkg: (file.ext) warning 9232:Additional file found
+           
+        4. Configuration warnings:
+           path:  warning NNNN:message  (note: double space before warning)
+           Example: Config.mappviewcfg:  warning 7512:Deprecated license mode
     #>
-    param([string[]]$Output)
+    param(
+        [string]$Line
+    )
     
-    $errors = 0
-    $warnings = 0
-    
-    # Look for "Build: X error(s), Y warning(s)" line
-    foreach ($line in $Output) {
-        if ($line -match 'Build:\s*(\d+)\s*error\(s\),\s*(\d+)\s*warning\(s\)') {
-            $errors = [int]$matches[1]
-            $warnings = [int]$matches[2]
-            break
-        }
+    if ([string]::IsNullOrWhiteSpace($Line)) {
+        return 'info'
     }
     
-    return @{ Errors = $errors; Warnings = $warnings }
+    # Error patterns - check these first
+    # Pattern 1: Standard AS error with number - "error NNNN:"
+    # Pattern 2: GCC error without number - ") error :" (after line/col info)
+    if ($Line -match '\)\s+error\s*\d*:' -or $Line -match '\berror\s+\d+:') {
+        return 'error'
+    }
+    
+    # Warning patterns - multiple formats from BR.AS.Build.exe
+    # Pattern 1: Standard AS warning with number - "warning NNNN:"
+    # Pattern 2: GCC warning without number - ") warning :" (after line/col info)
+    # Pattern 3: GCC warning with flag - "warning :message [-Wflag]"
+    if ($Line -match '\)\s+warning\s*\d*:' -or $Line -match '\bwarning\s+\d+:' -or $Line -match '\[-W\w+\]') {
+        return 'warning'
+    }
+    
+    return 'info'
+}
+
+# Debug logging - enabled via -DebugLog switch parameter
+# Log file location: $env:TEMP\as_build_debug_<timestamp>.log
+$script:DebugLogEnabled = $DebugLog
+$script:DebugLogPath = Join-Path $env:TEMP "as_build_debug_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+
+function Write-DebugLog {
+    <#
+    .SYNOPSIS
+        Writes a line to the debug log file with classification info
+    #>
+    param(
+        [string]$Line,
+        [string]$Classification
+    )
+    
+    if ($script:DebugLogEnabled) {
+        $logEntry = "[$Classification] $Line"
+        Add-Content -Path $script:DebugLogPath -Value $logEntry -Encoding UTF8
+    }
+}
+
+function Initialize-DebugLog {
+    <#
+    .SYNOPSIS
+        Initializes the debug log file
+    #>
+    if ($script:DebugLogEnabled) {
+        $header = @"
+=============================================================================
+B&R Automation Studio Build Output Debug Log
+Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+Purpose: Analyze build output patterns for message classification
+=============================================================================
+
+Format: [CLASSIFICATION] Original Line
+Classifications: ERROR, WARNING, INFO
+
+=============================================================================
+RAW BUILD OUTPUT:
+=============================================================================
+"@
+        Set-Content -Path $script:DebugLogPath -Value $header -Encoding UTF8
+        Write-Host "Debug log enabled: $script:DebugLogPath" -ForegroundColor Magenta
+    }
+}
+
+function Write-ColoredLine {
+    <#
+    .SYNOPSIS
+        Writes a line with color based on its type
+    #>
+    param(
+        [string]$Line,
+        [string]$Type
+    )
+    
+    switch ($Type) {
+        'error'   { Write-Host $Line -ForegroundColor Red }
+        'warning' { Write-Host $Line -ForegroundColor Yellow }
+        default   { Write-Host $Line }
+    }
 }
 
 #endregion
@@ -449,6 +803,11 @@ function New-TransferPIL {
     <#
     .SYNOPSIS
         Generates a PIL file for PVITransfer
+    .NOTES
+        Connection command syntax (from B&R documentation):
+        Connection "Device parameters", "CPU parameters", "WT=Waiting time"
+        - Device: /IF=tcpip /SA=x (source address)
+        - CPU: /DAIP=x.x.x.x (destination IP address)
     #>
     param(
         [string]$RUCPackagePath,
@@ -458,7 +817,7 @@ function New-TransferPIL {
     )
     
     $pilContent = @"
-Connection "Cpu", "/IF=TcpIp /IP=$TargetIP", "/AM=* /SDT=5 /DASESSION=1"
+Connection "/IF=tcpip /SA=1", "/DAIP=$TargetIP", "WT=30"
 Transfer "$RUCPackagePath", "InstallMode=$InstallMode InstallRestriction=AllowUpdatesWithoutDataLoss KeepPVValues=1 ExecuteInitExit=1 IgnoreVersion=1 AllowDowngrade=0"
 "@
     
@@ -504,7 +863,7 @@ function Invoke-Build {
         [string]$OutputPath,
         [bool]$Clean,
         [bool]$Rebuild,
-        [bool]$ShowWarnings = $false
+        [bool]$SilenceOutput = $true
     )
     
     $configName = $Config.Name
@@ -520,38 +879,109 @@ function Invoke-Build {
             "-cleanAll"
         )
         $cleanResult = Start-Process -FilePath $BuildExe -ArgumentList $cleanArgs -Wait -PassThru -NoNewWindow
+        
+        # Also clean the Objects folder to force full recompilation (shows all warnings)
+        $objectsPath = Join-Path $TempPath "Objects\$configName"
+        if (Test-Path $objectsPath) {
+            Remove-Item -Path $objectsPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
     
     # Build
+    $buildMode = if ($Rebuild) { "Rebuild" } else { "Build" }
     $buildArgs = @(
         "`"$ProjectFile`"",
         "-c", $configName,
         "-t", "`"$TempPath`"",
         "-o", "`"$OutputPath`"",
-        "-buildMode", "Build",
+        "-buildMode", $buildMode,
         "-buildRUCPackage"
     )
     
-    if ($Rebuild) {
-        $buildArgs += "-all"
-    }
-    
-    $process = Start-Process -FilePath $BuildExe -ArgumentList $buildArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput "$env:TEMP\asbuild_stdout.txt" -RedirectStandardError "$env:TEMP\asbuild_stderr.txt"
-    
     $stdout = @()
-    if (Test-Path "$env:TEMP\asbuild_stdout.txt") {
-        $stdout = Get-Content "$env:TEMP\asbuild_stdout.txt"
-        $stdout | ForEach-Object { Write-Host $_ }
+    $errors = 0
+    $warnings = 0
+    $infoCount = 0
+    
+    # Initialize debug log if this is the first build
+    Initialize-DebugLog
+    
+    # Process build output line-by-line
+    & $BuildExe $buildArgs 2>&1 | ForEach-Object {
+        $line = $_.ToString()
+        $stdout += $line
+        
+        # Determine line type
+        $lineType = Get-LineType -Line $line
+        
+        # Log to debug file
+        Write-DebugLog -Line $line -Classification $lineType.ToUpper()
+        
+        # Update counters
+        switch ($lineType) {
+            'error'   { $errors++ }
+            'warning' { $warnings++ }
+            default   { $infoCount++ }
+        }
+        
+        if ($SilenceOutput) {
+            # Silent mode: only update status line on same line, don't show individual messages
+            Write-BuildStatus -Errors $errors -Warnings $warnings -Info $infoCount
+        }
+        else {
+            # Verbose mode: clear status line, print message, then write status on new line
+            # The status line will be overwritten by next iteration
+            Write-BuildStatus -ClearLine
+            Write-ColoredLine -Line $line -Type $lineType
+            Write-BuildStatus -Errors $errors -Warnings $warnings -Info $infoCount
+        }
     }
     
-    $counts = Get-BuildCounts -Output $stdout
-    Write-BuildOutput -Output $stdout -IncludeWarnings:$ShowWarnings
+    # Clear any remaining status line content and move to new line
+    Write-BuildStatus -ClearLine
     
-    if ($counts.Errors -gt 0 -or $counts.Warnings -gt 0) {
-        Write-Host "`nBuild Summary: $($counts.Errors) error(s), $($counts.Warnings) warning(s)" -ForegroundColor $(if ($counts.Errors -gt 0) { "Red" } else { "Yellow" })
+    # Get exit code
+    $buildExitCode = $LASTEXITCODE
+    
+    # In silent mode, only show errors (not warnings)
+    # In verbose mode, errors and warnings were already shown during build
+    if ($SilenceOutput) {
+        Write-BuildOutput -Output $stdout -IncludeWarnings:$false
     }
     
-    return [BuildResult]::new($configName, $process.ExitCode, $counts.Errors, $counts.Warnings)
+    if ($errors -gt 0 -or $warnings -gt 0) {
+        Write-Host "Build Summary: $errors error(s), $warnings warning(s)" -ForegroundColor $(if ($errors -gt 0) { "Red" } else { "Yellow" })
+    }
+    
+    # BR.AS.Build.exe return codes (from B&R documentation):
+    # 0 = No errors or warnings (success)
+    # 1 = Warnings only (build succeeded, RUC package created)
+    # 3 = Build error (build failed)
+    # Exit codes 0 and 1 both indicate successful build (RUC package available for transfer)
+    $buildSucceeded = $buildExitCode -in @(0, 1)
+    $effectiveExitCode = if ($buildSucceeded) { 0 } else { $buildExitCode }
+    
+    return [BuildResult]::new($configName, $effectiveExitCode, $errors, $warnings)
+}
+
+function Get-PVITransferErrorMessage {
+    <#
+    .SYNOPSIS
+        Returns human-readable error message for PVITransfer exit codes
+    .NOTES
+        PVITransfer (Runtime Utility Center) return codes from B&R documentation
+    #>
+    param([int]$ExitCode)
+    
+    switch ($ExitCode) {
+        0       { return $null }  # Success
+        4808    { return "PVI error: No connection available to the PLC. Is ARsim/PLC running?" }
+        28320   { return "File not found (RUC package or PIL file)" }
+        28321   { return "No file name specified" }
+        28324   { return "Module not found" }
+        28325   { return "Syntax error in command line" }
+        default { return "Unknown transfer error (code: $ExitCode)" }
+    }
 }
 
 function Invoke-Transfer {
@@ -567,7 +997,8 @@ function Invoke-Transfer {
     Write-Step "Transferring to target..."
     Write-Host "PIL File: $PILFile"
     
-    $transferArgs = @("-silent", "`"$PILFile`"")
+    # PVITransfer requires PIL file path with dash prefix: -C:\path\file.pil
+    $transferArgs = @("-silent", "-$PILFile")
     $process = Start-Process -FilePath $TransferExe -ArgumentList $transferArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput "$env:TEMP\pvitransfer_stdout.txt" -RedirectStandardError "$env:TEMP\pvitransfer_stderr.txt"
     
     # Show any output for debugging
@@ -578,6 +1009,12 @@ function Invoke-Transfer {
     if (Test-Path "$env:TEMP\pvitransfer_stderr.txt") {
         $stderr = Get-Content "$env:TEMP\pvitransfer_stderr.txt" -ErrorAction SilentlyContinue
         if ($stderr) { $stderr | ForEach-Object { Write-Host $_ -ForegroundColor Red } }
+    }
+    
+    # Provide helpful error message based on exit code
+    $errorMsg = Get-PVITransferErrorMessage -ExitCode $process.ExitCode
+    if ($errorMsg) {
+        Write-Host $errorMsg -ForegroundColor Red
     }
     
     return $process.ExitCode
@@ -629,7 +1066,8 @@ Write-Host "Build Exe: $buildExe"
 
 # Get PVI path for transfer operations
 if ($Action -in @("Transfer", "BuildAndTransfer")) {
-    $pviPath = Get-PVIPath
+    # Use PVI bundled with the same AS version to ensure RUC package compatibility
+    $pviPath = Get-PVIPath -ASPath $asPath
     if (-not $pviPath) {
         Write-Failure "PVI installation not found."
         exit 1
@@ -696,31 +1134,34 @@ $exitCode = 0
 
 switch ($Action) {
     "Clean" {
-        foreach ($config in $configsToBuild) {
-            Write-Step "Cleaning configuration: $($config.Name)"
-            $cleanArgs = @(
-                "`"$projectFile`"",
-                "-c", $config.Name,
-                "-t", "`"$tempPath`"",
-                "-cleanAll"
-            )
-            $process = Start-Process -FilePath $buildExe -ArgumentList $cleanArgs -Wait -PassThru -NoNewWindow
-            if ($process.ExitCode -ne 0) {
-                $exitCode = $process.ExitCode
-            }
+        Write-Step "Cleaning all build artifacts..."
+        
+        # Clean Temp folder (contains Includes/.h, Archives/.a, Objects, etc.)
+        if (Test-Path $tempPath) {
+            Write-Host "  Removing Temp folder..."
+            Remove-Item -Path $tempPath -Recurse -Force -ErrorAction SilentlyContinue
         }
-        if ($exitCode -eq 0) {
-            Write-Success "Clean completed successfully"
+        
+        # Clean Binaries folder
+        if (Test-Path $outputPath) {
+            Write-Host "  Removing Binaries folder..."
+            Remove-Item -Path $outputPath -Recurse -Force -ErrorAction SilentlyContinue
         }
-        else {
-            Write-Failure "Clean failed with exit code: $exitCode"
+        
+        # Clean Diagnosis folder
+        $diagnosisPath = Join-Path $ProjectPath "Diagnosis"
+        if (Test-Path $diagnosisPath) {
+            Write-Host "  Removing Diagnosis folder..."
+            Remove-Item -Path $diagnosisPath -Recurse -Force -ErrorAction SilentlyContinue
         }
+        
+        Write-Success "Clean completed successfully"
     }
     
     "Build" {
         foreach ($config in $configsToBuild) {
             $result = Invoke-Build -BuildExe $buildExe -ProjectFile $projectFile -Config $config `
-                -TempPath $tempPath -OutputPath $outputPath -Clean (-not $NoClean) -Rebuild $false -ShowWarnings $ShowWarnings
+                -TempPath $tempPath -OutputPath $outputPath -Clean $false -Rebuild $false -SilenceOutput $SilenceOutputBool
             $buildResults += $result
             
             if ($result.ExitCode -ne 0) {
@@ -752,7 +1193,7 @@ switch ($Action) {
     "Rebuild" {
         foreach ($config in $configsToBuild) {
             $result = Invoke-Build -BuildExe $buildExe -ProjectFile $projectFile -Config $config `
-                -TempPath $tempPath -OutputPath $outputPath -Clean $true -Rebuild $true -ShowWarnings $ShowWarnings
+                -TempPath $tempPath -OutputPath $outputPath -Clean $true -Rebuild $true -SilenceOutput $SilenceOutputBool
             $buildResults += $result
             
             if ($result.ExitCode -ne 0) {
@@ -793,23 +1234,20 @@ switch ($Action) {
     
     "BuildAndTransfer" {
         # Build first
-        $buildHadErrors = $false
         foreach ($config in $configsToBuild) {
             $result = Invoke-Build -BuildExe $buildExe -ProjectFile $projectFile -Config $config `
-                -TempPath $tempPath -OutputPath $outputPath -Clean (-not $NoClean) -Rebuild $false -ShowWarnings $ShowWarnings
+                -TempPath $tempPath -OutputPath $outputPath -Clean $false -Rebuild $false -SilenceOutput $SilenceOutputBool
             $buildResults += $result
             
-            if ($result.Errors -gt 0) {
-                $buildHadErrors = $true
+            if ($result.ExitCode -ne 0) {
+                $exitCode = $result.ExitCode
+                Write-Failure "Build failed. Transfer skipped."
+                break
             }
         }
         
-        # Transfer only if build had no errors
-        if ($buildHadErrors) {
-            Write-Host "`n[INFO] Transfer skipped due to build errors." -ForegroundColor Yellow
-            Write-Host "       Fix the errors above and run again." -ForegroundColor Yellow
-        }
-        else {
+        # Transfer if build succeeded
+        if ($exitCode -eq 0) {
             $config = $configsToBuild | Select-Object -First 1
             
             if ($PILFile -and (Test-Path $PILFile)) {
@@ -822,14 +1260,13 @@ switch ($Action) {
                 New-TransferPIL -RUCPackagePath $rucPackage -TargetIP $TargetIP -InstallMode $InstallMode -OutputPath $pilToUse
             }
             
-            $transferResult = Invoke-Transfer -TransferExe $transferExe -PILFile $pilToUse
+            $exitCode = Invoke-Transfer -TransferExe $transferExe -PILFile $pilToUse
             
-            if ($transferResult -eq 0) {
+            if ($exitCode -eq 0) {
                 Write-Success "Transfer completed successfully"
             }
             else {
-                Write-Failure "Transfer failed with exit code: $transferResult"
-                $exitCode = $transferResult
+                Write-Failure "Transfer failed with exit code: $exitCode"
             }
         }
     }
@@ -849,6 +1286,12 @@ if ($buildResults.Count -gt 0) {
     }
     
     Write-Host "`nTotal: $totalErrors error(s), $totalWarnings warning(s)"
+    
+    # Check warning threshold
+    if ($MaxWarnings -ge 0 -and $totalWarnings -gt $MaxWarnings) {
+        Write-Failure "Warning threshold exceeded! Max: $MaxWarnings, Actual: $totalWarnings"
+        $exitCode = 1
+    }
 }
 
 Write-Host ("=" * 60) -ForegroundColor Yellow
