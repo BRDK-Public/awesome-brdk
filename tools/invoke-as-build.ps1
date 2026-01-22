@@ -31,7 +31,9 @@
 .PARAMETER ProjectPath
     Path to the Automation Studio project directory (containing .apj file) or
     a workspace directory. If a workspace directory is provided, the script will
-    search for .apj files in the root and one level down in subdirectories.
+    search for .apj files in the root and subdirectories (breadth-first).
+    When multiple projects exist at the same depth, prefers the one with a
+    LastUser.set file (most recently opened in AS).
 
 .PARAMETER Configuration
     Configuration name to build. Use "all" to build all configurations.
@@ -65,7 +67,9 @@
     Default: Consistent
 
 .PARAMETER NoClean
-    Skip cleaning before build
+    Skip cleaning before Rebuild action. By default, Rebuild cleans all build
+    artifacts before building. Use this switch to perform a rebuild without
+    cleaning first (useful for debugging build issues).
 
 .PARAMETER BuildPIP
     Generate a Project Installation Package after build
@@ -77,7 +81,7 @@
 
 .EXAMPLE
     .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace"
-    # Auto-detects project in workspace - shows only errors
+    # Auto-detects project in workspace (prefers recently opened if multiple found)
 
 .EXAMPLE
     .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace\MyProject"
@@ -111,7 +115,7 @@ param(
     [string]$Action = "Build",
 
     [Parameter()]
-    [ValidateSet("yes", "no", "true", "false", "")]
+    [ValidateSet("yes", "no", "true", "false")]
     [string]$SilenceOutput = "yes",
 
     [Parameter()]
@@ -140,7 +144,7 @@ if ($Configuration -eq "auto") {
 }
 
 # Convert SilenceOutput string to boolean
-$SilenceOutputBool = $SilenceOutput -in @("yes", "true", "$true", "")
+$SilenceOutputBool = $SilenceOutput -in @("yes", "true")
 
 #region Project Discovery
 
@@ -1196,7 +1200,7 @@ switch ($Action) {
     "Rebuild" {
         foreach ($config in $configsToBuild) {
             $result = Invoke-Build -BuildExe $buildExe -ProjectFile $projectFile -Config $config `
-                -TempPath $tempPath -OutputPath $outputPath -Clean $true -Rebuild $true -SilenceOutput $SilenceOutputBool
+                -TempPath $tempPath -OutputPath $outputPath -Clean (-not $NoClean) -Rebuild $true -SilenceOutput $SilenceOutputBool
             $buildResults += $result
             
             if ($result.ExitCode -ne 0) {
