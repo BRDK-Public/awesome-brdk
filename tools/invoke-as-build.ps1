@@ -878,12 +878,6 @@ function Invoke-Build {
             "-cleanAll"
         )
         $cleanResult = Start-Process -FilePath $BuildExe -ArgumentList $cleanArgs -Wait -PassThru -NoNewWindow
-        
-        # Also clean the Objects folder to force full recompilation (shows all warnings)
-        $objectsPath = Join-Path $TempPath "Objects\$configName"
-        if (Test-Path $objectsPath) {
-            Remove-Item -Path $objectsPath -Recurse -Force -ErrorAction SilentlyContinue
-        }
     }
     
     # Build
