@@ -623,13 +623,17 @@ function Write-BuildStatus {
     )
     
     if ($ClearLine) {
-        # Clear the line completely
-        Write-Host "`r$(' ' * 60)`r" -NoNewline
+        # Clear the line completely - use large padding to handle any status line length
+        Write-Host "`r$(' ' * 120)`r" -NoNewline
         return
     }
     
     $errorColor = if ($Errors -gt 0) { "Red" } else { "DarkGray" }
     $warningColor = if ($Warnings -gt 0) { "Yellow" } else { "DarkGray" }
+    
+    # Build the status string to calculate its length for proper padding
+    $statusText = "Building... E:$Errors W:$Warnings I:$Info"
+    $paddingNeeded = [Math]::Max(0, 80 - $statusText.Length)
     
     # Write status with carriage return to stay on same line
     Write-Host "`r" -NoNewline
@@ -637,7 +641,7 @@ function Write-BuildStatus {
     Write-Host "E:$Errors " -NoNewline -ForegroundColor $errorColor
     Write-Host "W:$Warnings " -NoNewline -ForegroundColor $warningColor
     Write-Host "I:$Info" -NoNewline -ForegroundColor DarkGray
-    Write-Host "$(' ' * 20)" -NoNewline  # Padding to clear old content
+    Write-Host "$(' ' * $paddingNeeded)" -NoNewline  # Dynamic padding to clear old content
     
     if ($NewLineAfter) {
         Write-Host ""  # Add newline
@@ -902,6 +906,9 @@ function Invoke-Build {
     $errors = 0
     $warnings = 0
     $infoCount = 0
+    $lineCount = 0
+    $lastStatusUpdate = [DateTime]::MinValue
+    $statusUpdateIntervalMs = 100  # Throttle status updates to every 100ms
     
     # Initialize debug log if this is the first build
     Initialize-DebugLog
@@ -910,6 +917,7 @@ function Invoke-Build {
     & $BuildExe $buildArgs 2>&1 | ForEach-Object {
         $line = $_.ToString()
         $stdout += $line
+        $lineCount++
         
         # Determine line type
         $lineType = Get-LineType -Line $line
@@ -924,9 +932,17 @@ function Invoke-Build {
             default   { $infoCount++ }
         }
         
+        # Throttle status updates for performance (update every 100ms or on errors/warnings)
+        $now = [DateTime]::Now
+        $timeSinceLastUpdate = ($now - $lastStatusUpdate).TotalMilliseconds
+        $shouldUpdateStatus = ($timeSinceLastUpdate -ge $statusUpdateIntervalMs)
+        
         if ($SilenceOutput) {
             # Silent mode: only update status line on same line, don't show individual messages
-            Write-BuildStatus -Errors $errors -Warnings $warnings -Info $infoCount
+            if ($shouldUpdateStatus) {
+                Write-BuildStatus -Errors $errors -Warnings $warnings -Info $infoCount
+                $lastStatusUpdate = $now
+            }
         }
         else {
             # Verbose mode: clear status line, print message, then write status on new line
@@ -937,8 +953,8 @@ function Invoke-Build {
         }
     }
     
-    # Clear any remaining status line content and move to new line
-    Write-BuildStatus -ClearLine
+    # Final status update to ensure accurate counts are displayed
+    Write-BuildStatus -Errors $errors -Warnings $warnings -Info $infoCount
     
     # Get exit code
     $buildExitCode = $LASTEXITCODE
@@ -997,8 +1013,8 @@ function Invoke-Transfer {
     Write-Step "Transferring to target..."
     Write-Host "PIL File: $PILFile"
     
-    # PVITransfer requires PIL file path with dash prefix: -C:\path\file.pil
-    $transferArgs = @("-silent", "-$PILFile")
+     # PVITransfer is invoked as: PVITransfer.exe -silent <PIL file path>
+    $transferArgs = @("-silent", $PILFile)
     $process = Start-Process -FilePath $TransferExe -ArgumentList $transferArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput "$env:TEMP\pvitransfer_stdout.txt" -RedirectStandardError "$env:TEMP\pvitransfer_stderr.txt"
     
     # Show any output for debugging

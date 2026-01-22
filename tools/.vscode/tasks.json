@@ -188,7 +188,7 @@
                 "clear": true
             },
             "problemMatcher": [],
-            "detail": "Clean all build artifacts (Temp, Binaries, Diagnosis)"
+            "detail": "Clean all build artifacts (Temp, Binaries)"
         },
         {
             "label": "AS: Transfer",
