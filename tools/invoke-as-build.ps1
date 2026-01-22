@@ -147,8 +147,8 @@ param(
     [switch]$BuildPIP
 )
 
-# Normalize empty/whitespace-only Configuration to empty string
-if ([string]::IsNullOrWhiteSpace($Configuration)) {
+# Treat 'auto' as empty string for auto-detection
+if ($Configuration -eq "auto") {
     $Configuration = ""
 }
 

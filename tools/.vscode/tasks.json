@@ -4,8 +4,8 @@
         {
             "id": "configuration",
             "type": "promptString",
-            "description": "Configuration name (leave empty for auto-detect, 'all' for all configurations)",
-            "default": ""
+            "description": "Configuration name ('auto' for auto-detect, 'all' for all configurations, or specific config name)",
+            "default": "auto"
         },
         {
             "id": "targetIP",
@@ -270,7 +270,8 @@
                 "-File", "${workspaceFolder}/.vscode/scripts/invoke-as-build.ps1",
                 "-ProjectPath", "${workspaceFolder}",
                 "-Action", "Build",
-                "-SilenceOutput", "${input:silenceOutput}"
+                "-SilenceOutput", "${input:silenceOutput}",
+                "-Configuration", "${input:configuration}"
             ],
             "group": "build",
             "presentation": {
@@ -307,7 +308,7 @@
                     }
                 }
             ],
-            "detail": "Build with options. Set silenceOutput to 'no' to see full build output."
+            "detail": "Build with options. Use 'auto' for auto-detect, specific config name, or 'all' for all configurations."
         },
         {
             "label": "AS: Transfer (Interactive)",
@@ -342,7 +343,8 @@
                 "-ProjectPath", "${workspaceFolder}",
                 "-Action", "BuildAndTransfer",
                 "-TargetIP", "${input:targetIP}",
-                "-SilenceOutput", "${input:silenceOutput}"
+                "-SilenceOutput", "${input:silenceOutput}",
+                "-Configuration", "${input:configuration}"
             ],
             "group": "build",
             "presentation": {
@@ -379,7 +381,7 @@
                     }
                 }
             ],
-            "detail": "Build and transfer with options. Set silenceOutput to 'no' to see full build output."
+            "detail": "Build and transfer with options. Use 'auto' for auto-detect, specific config name, or 'all' for all configurations."
         }
     ]
 }
