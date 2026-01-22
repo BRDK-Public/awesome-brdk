@@ -1136,24 +1136,20 @@ switch ($Action) {
     "Clean" {
         Write-Step "Cleaning all build artifacts..."
         
-        # Clean Temp folder (contains Includes/.h, Archives/.a, Objects, etc.)
-        if (Test-Path $tempPath) {
-            Write-Host "  Removing Temp folder..."
-            Remove-Item -Path $tempPath -Recurse -Force -ErrorAction SilentlyContinue
+        # Use BR.AS.Build.exe -cleanAll for each configuration
+        foreach ($config in $configsToBuild) {
+            Write-Host "  Cleaning configuration: $($config.Name)..."
+            $cleanArgs = @(
+                "`"$projectFile`"",
+                "-c", $config.Name,
+                "-cleanAll"
+            )
+            $cleanResult = Start-Process -FilePath $buildExe -ArgumentList $cleanArgs -Wait -PassThru -NoNewWindow
+            if ($cleanResult.ExitCode -ne 0) {
+                Write-Warning "Clean returned exit code: $($cleanResult.ExitCode)"
+            }
         }
         
-        # Clean Binaries folder
-        if (Test-Path $outputPath) {
-            Write-Host "  Removing Binaries folder..."
-            Remove-Item -Path $outputPath -Recurse -Force -ErrorAction SilentlyContinue
-        }
-        
-        # Clean Diagnosis folder
-        $diagnosisPath = Join-Path $ProjectPath "Diagnosis"
-        if (Test-Path $diagnosisPath) {
-            Write-Host "  Removing Diagnosis folder..."
-            Remove-Item -Path $diagnosisPath -Recurse -Force -ErrorAction SilentlyContinue
-        }
         
         Write-Success "Clean completed successfully"
     }
