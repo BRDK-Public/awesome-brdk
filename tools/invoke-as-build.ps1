@@ -9,7 +9,6 @@
     - Project version matching to installed AS version
     - Configuration discovery from project files
     - Build all configurations support
-    - Warning threshold enforcement
     - Auto-generation of PIL files for transfer
     - Clean terminal output (only errors by default)
     - Dynamic status line showing E:errors W:warnings I:info count
@@ -54,11 +53,6 @@
     Warnings do NOT prevent compilation - only errors matter for build success.
     Accepts: "yes", "no", "true", "false" (default: "yes" - silent mode)
 
-.PARAMETER MaxWarnings
-    Maximum allowed warnings before build fails. Use for CI/CD pipelines.
-    Set to -1 to disable warning threshold check.
-    Default: -1 (disabled)
-
 .PARAMETER PILFile
     Path to PIL file for transfer. If not specified, auto-generates one.
 
@@ -98,10 +92,6 @@
     # Build and transfer to PLC
 
 .EXAMPLE
-    .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace" -MaxWarnings 10
-    # Fail build if more than 10 warnings (for CI/CD pipelines)
-
-.EXAMPLE
     .\invoke-as-build.ps1 -ProjectPath "C:\Projects\MyWorkspace" -DebugLog
     # Logs all build output to a timestamped file in %TEMP% for debugging message classification
 #>
@@ -123,9 +113,6 @@ param(
     [Parameter()]
     [ValidateSet("yes", "no", "true", "false", "")]
     [string]$SilenceOutput = "yes",
-
-    [Parameter()]
-    [int]$MaxWarnings = -1,
 
     [Parameter()]
     [string]$PILFile,
@@ -692,12 +679,12 @@ function Get-LineType {
     .NOTES
         B&R build output has multiple warning/error formats:
         
-        1. Standard AS warnings/errors (IEC-61131, MappView, etc.):
-           path: (location) warning NNNN:message
-           path: (location) error NNNN:message
-           Example: file.st: (Ln: 260, Col: 42) warning 1281:>= signed/unsigned mismatch.
+        1. Standard AS warnings/errors (IEC-61131 variables, etc.):
+           path: (Ln: N) warning NNNN:message
+           path: (Ln: N) error NNNN:message
+           Example: Variables.var: (Ln: 4) warning 5874:Variable vari is declared local but not used
            
-        2. GCC/C++ compiler warnings/errors:
+        2. GCC/C++ compiler warnings/errors (includes column):
            path: (Ln: N, Col: N) warning :message [-Wflag]
            path: (Ln: N, Col: N) error :message
            Example: file.cpp: (Ln: 805, Col: 9) warning :enumeration value 'X' not handled [-Wswitch]
@@ -709,6 +696,10 @@ function Get-LineType {
         4. Configuration warnings:
            path:  warning NNNN:message  (note: double space before warning)
            Example: Config.mappviewcfg:  warning 7512:Deprecated license mode
+           
+        5. Line number in parentheses format:
+           path(N): warning NNNN: message
+           Example: file.st(123): warning 1234: Some message
     #>
     param(
         [string]$Line
@@ -953,7 +944,7 @@ function Invoke-Build {
         }
     }
     
-    # Final status update to ensure accurate counts are displayed
+     # Final status update to ensure accurate counts are displayed
     Write-BuildStatus -Errors $errors -Warnings $warnings -Info $infoCount
     
     # Get exit code
@@ -1298,12 +1289,6 @@ if ($buildResults.Count -gt 0) {
     }
     
     Write-Host "`nTotal: $totalErrors error(s), $totalWarnings warning(s)"
-    
-    # Check warning threshold
-    if ($MaxWarnings -ge 0 -and $totalWarnings -gt $MaxWarnings) {
-        Write-Failure "Warning threshold exceeded! Max: $MaxWarnings, Actual: $totalWarnings"
-        $exitCode = 1
-    }
 }
 
 Write-Host ("=" * 60) -ForegroundColor Yellow
