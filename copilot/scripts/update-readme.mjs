@@ -124,6 +124,21 @@ function extractTitle(filePath) {
       const content = fs.readFileSync(filePath, "utf8");
       const lines = content.split("\n");
 
+      const findFirstHeading = () => {
+        let inCodeBlock = false;
+        for (const line of lines) {
+          if (line.trim().startsWith("```") || line.trim().startsWith("````")) {
+            inCodeBlock = !inCodeBlock;
+            continue;
+          }
+
+          if (!inCodeBlock && line.startsWith("# ")) {
+            return line.substring(2).trim();
+          }
+        }
+        return null;
+      };
+
       // Step 1: Try to get title from frontmatter using vfile-matter
       const frontmatter = parseFrontmatter(filePath);
 
@@ -131,6 +146,11 @@ function extractTitle(filePath) {
         // Check for title field
         if (frontmatter.title && typeof frontmatter.title === "string") {
           return frontmatter.title;
+        }
+
+        if (filePath.endsWith("SKILL.md")) {
+          const heading = findFirstHeading();
+          if (heading) return heading;
         }
 
         // Check for name field and convert to title case
@@ -195,17 +215,8 @@ function extractTitle(filePath) {
       }
 
       // Step 4: For other files, look for the first heading (but not in code blocks)
-      let inCodeBlock = false;
-      for (const line of lines) {
-        if (line.trim().startsWith("```") || line.trim().startsWith("````")) {
-          inCodeBlock = !inCodeBlock;
-          continue;
-        }
-
-        if (!inCodeBlock && line.startsWith("# ")) {
-          return line.substring(2).trim();
-        }
-      }
+      const heading = findFirstHeading();
+      if (heading) return heading;
 
       // Step 5: Fallback to filename
       const basename = path.basename(filePath, path.extname(filePath));
