@@ -232,6 +232,24 @@ function extractTitle(filePath) {
   );
 }
 
+function renderSkillAsset(skillPath, asset) {
+  const assetPath = path.join(skillPath, asset);
+  if (asset.toLowerCase().endsWith(".url")) {
+    const content = fs.readFileSync(assetPath, "utf8");
+    const match = content.match(/^URL=(.+)$/im);
+    if (match) {
+      const basename = path.basename(asset, path.extname(asset));
+      const label =
+        basename === "as-cli-repository"
+          ? "as-cli repository"
+          : basename.replace(/[-_]/g, " ");
+      return `[${label}](${match[1].trim()})`;
+    }
+  }
+
+  return `\`${asset}\``;
+}
+
 function extractDescription(filePath) {
   return safeFileOperation(
     () => {
@@ -521,6 +539,7 @@ function generateSkillsSection(skillsDir) {
         name: metadata.name,
         description: metadata.description,
         assets: metadata.assets,
+        path: skillPath,
       };
     })
     .filter((entry) => entry !== null)
@@ -541,7 +560,7 @@ function generateSkillsSection(skillsDir) {
     const link = `../skills/${skill.folder}/SKILL.md`;
     const assetsList =
       skill.assets.length > 0
-        ? skill.assets.map((a) => `\`${a}\``).join("<br />")
+        ? skill.assets.map((a) => renderSkillAsset(skill.path, a)).join("<br />")
         : "None";
 
     content += `| [${skill.name}](${link}) | ${skill.description} | ${assetsList} |\n`;

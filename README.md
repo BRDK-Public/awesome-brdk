@@ -16,6 +16,12 @@ This project serves as a central hub for shareable B&R Industrial Automation dev
 - [Tools](/tools/README.md)
 - [Documentation](/docs/README.md)
 
+## AS CLI
+
+[as-cli](https://github.com/br-automation-com/as-cli) is the B&R Automation Studio command-line tool used by the [AS CLI skill](/copilot/skills/as-cli/SKILL.md). Agents can use the skill to run `as-cli` correctly for project inspection, builds, diagnostics, transfers, simulation, PLC access, and XML configuration work.
+
+The CLI is also useful outside Copilot for DevOps and automation workflows: scripted local builds, RUC/PIP package generation, deployment checks, configuration inspection, and repeatable project diagnostics without opening Automation Studio.
+
 ## Contributing
 
 Contributions are welcome! To contribute:

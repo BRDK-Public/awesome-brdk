@@ -8,6 +8,10 @@ argument-hint: 'Describe what you want to do with the AS project'
 
 Use this skill to run `as-cli` commands against a B&R Automation Studio project. The CLI uses a per-project daemon with named pipes — the daemon starts automatically on first command.
 
+## Bundled Resources
+
+- [as-cli repository](https://github.com/br-automation-com/as-cli) — source, releases, and documentation for the CLI used by this skill.
+
 ## Quick Start
 
 Run from any folder inside an AS project (the `.apj` file is found by walking up parent directories):
