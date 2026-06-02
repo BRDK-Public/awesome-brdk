@@ -136,7 +136,7 @@ Add `-Configuration` argument:
 
 ### Always Show Warnings
 
-Add `-ShowWarnings` to the task args:
+Add `-SilenceOutput` with `no` to the task args:
 
 ```json
 "args": [
@@ -144,7 +144,7 @@ Add `-ShowWarnings` to the task args:
     "-File", "${workspaceFolder}/.vscode/scripts/invoke-as-build.ps1",
     "-ProjectPath", "${workspaceFolder}",
     "-Action", "Build",
-    "-ShowWarnings"
+    "-SilenceOutput", "no"
 ]
 ```
 

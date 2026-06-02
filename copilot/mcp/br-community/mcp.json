@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "br-community": {
+      "command": "${env:APPDATA}\\br-community-mcp\\br-community-mcp.exe",
+      "args": []
+    }
+  }
+}

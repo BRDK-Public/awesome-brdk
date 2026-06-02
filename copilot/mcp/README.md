@@ -1,4 +1,4 @@
-# 🔌 Model Context Protocol (MCP) Servers
+# Model Context Protocol (MCP) Servers
 
 MCP servers extend GitHub Copilot's capabilities by providing specialized tools and context for B&R Industrial Automation development.
 
@@ -6,18 +6,15 @@ MCP servers extend GitHub Copilot's capabilities by providing specialized tools 
 
 Model Context Protocol servers for extended functionality:
 
-### AS Help MCP:
-- **[AS Help MCP in Copilot](./copilot/mcp/as-help/)** - Search and retrieve B&R Automation Studio help documentation 
-- GitHub Repository: **[as-help-mcp](https://github.com/BRDK-GitHub/as-help-mcp)** - Link to the GitHub repository
+### AS Help MCP
 
-### AR ANSL MCP:
-- **[AR ANSL MCP in Copilot](./copilot/mcp/ar-ansl/)** - ANSL connection to a B&R PLC or the Simulator.
-- GitHub Repository: **[ar-ansl-mcp](https://github.com/BRDK-GitHub/ar-ansl-mcp)** - Link to the GitHub repository
+- **[AS Help MCP in Copilot](./as-help/)** - Search and retrieve B&R Automation Studio help documentation.
+- GitHub Actions: **[as-help-mcp](https://github.com/br-automation-community/as-help-mcp/actions)**.
 
-### SDM MCP:
-- **[SDM MCP in Copilot](./copilot/mcp/sdm/)** - PLC System Dump Inspection
-- GitHub Repository: **[sdm-mcp](https://github.com/BRDK-GitHub/sdm-mcp)** - Link to the GitHub repository.
+### BR Community MCP
 
+- **[BR Community MCP in Copilot](./br-community/)** - Search and retrieve information from the B&R Automation Community forum.
+- GitHub Repository: **[br-community-mcp](https://github.com/br-automation-community/br-community-mcp)**.
 
 ## What is MCP?
 
@@ -25,32 +22,17 @@ Model Context Protocol (MCP) is an open standard that enables AI assistants to s
 
 - Custom tools and functions
 - Access to external data sources
-- Integration with B&R-specific systems
+- Integration with B&R-specific documentation and community knowledge
 - Enhanced context for code generation
 
-## GitHub Container Registry (GHCR) Authentication
+## Installation
 
-Many of our MCP servers are distributed as Docker images via GitHub Container Registry. To use them, you need to authenticate Docker with GitHub.
+These examples use Windows executables only.
 
-1.  Create a **Personal Access Token (Classic)** with `read:packages` scope.
-    *   Follow the guide here: [Creating a personal access token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic)
-    *   **Important:** Ensure your token has an expiration date set.
-
-2.  Authenticate Docker using your username and the token:
-    ```bash
-    docker login -u <YOUR_GITHUB_USERNAME> ghcr.io
-    ```
-    When prompted for the password, paste your Personal Access Token.
-
-## 📖 How to Use MCP Servers
-
-### Installation
-
-1. Navigate to the MCP server directory
-2. Follow the installation instructions in the server's README
-3. Start Docker Desktop 
-4. Configure the server in `.vscode/mcp.json`
-5. Click "Start" just over the server name in `.vscode/mcp.json`
+1. Download the `.exe` for the MCP server.
+2. Place it in the matching folder under `%APPDATA%`, for example `%APPDATA%\as-help-mcp\`.
+3. Copy the configuration from the server's `mcp.json` into `.vscode/mcp.json`.
+4. In VS Code, click **Start** above the server name in `.vscode/mcp.json`.
 
 ### Configuration
 
@@ -59,21 +41,22 @@ MCP servers are configured in your project's `.vscode/mcp.json`:
 ```json
 {
   "servers": {
-    "server1-name": {
-      "command": "docker",
+    "as-help": {
+      "command": "${env:APPDATA}\\as-help-mcp\\as-help-server.exe",
       "args": [
-        "arg1", 
-        "arg2",
-        "arg2"
-        ]
+        "--help-root",
+        "C:\\Program Files (x86)\\BRAutomation\\AS6\\Help-en\\Data",
+        "--db-path",
+        "${env:APPDATA}\\as-help-mcp\\data\\as6\\.ashelp_lance",
+        "--metadata-dir",
+        "${env:APPDATA}\\as-help-mcp\\data\\as6\\.ashelp_metadata",
+        "--as-version",
+        "6"
+      ]
     },
-    "server2-name": {
-      "command": "docker",
-      "args": [
-        "arg1", 
-        "arg2",
-        "arg2"
-        ]
+    "br-community": {
+      "command": "${env:APPDATA}\\br-community-mcp\\br-community-mcp.exe",
+      "args": []
     }
   }
 }
@@ -88,18 +71,18 @@ Once configured, MCP servers:
 - Work seamlessly with custom agents
 
 
-## 🤝 Contributing
+## Contributing
 
 To add a new MCP server:
 
 1. Create a new directory under `mcp/`
 2. Implement the MCP server following the protocol specification
 3. Provide comprehensive documentation
-4. Include setup scripts and configuration examples
+4. Include executable-based configuration examples
 5. Update this README
 6. Submit a pull request
 
-## 📚 Resources
+## Resources
 
 - [MCP Specification](https://github.com/modelcontextprotocol/specification)
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)

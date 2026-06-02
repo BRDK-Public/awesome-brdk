@@ -1069,8 +1069,8 @@ if (-not (Test-Path $buildExe)) {
 }
 Write-Host "Build Exe: $buildExe"
 
-# Get PVI path for transfer operations
-if ($Action -in @("Transfer", "BuildAndTransfer")) {
+# Get PVI path for transfer operations and PIP generation
+if ($Action -in @("Transfer", "BuildAndTransfer") -or $BuildPIP) {
     # Use PVI bundled with the same AS version to ensure RUC package compatibility
     $pviPath = Get-PVIPath -ASPath $asPath
     if (-not $pviPath) {
@@ -1152,11 +1152,18 @@ switch ($Action) {
             $cleanResult = Start-Process -FilePath $buildExe -ArgumentList $cleanArgs -Wait -PassThru -NoNewWindow
             if ($cleanResult.ExitCode -ne 0) {
                 Write-Warning "Clean returned exit code: $($cleanResult.ExitCode)"
+                if ($exitCode -eq 0) {
+                    $exitCode = $cleanResult.ExitCode
+                }
             }
         }
         
-        
-        Write-Success "Clean completed successfully"
+        if ($exitCode -eq 0) {
+            Write-Success "Clean completed successfully"
+        }
+        else {
+            Write-Failure "Clean failed with exit code: $exitCode"
+        }
     }
     
     "Build" {
@@ -1185,6 +1192,18 @@ switch ($Action) {
                     $pipResult = Invoke-Transfer -TransferExe $transferExe -PILFile $pipPil
                     if ($pipResult -eq 0) {
                         Write-Success "PIP created at: $pipDir"
+                    }
+                    else {
+                        Write-Failure "PIP creation failed with exit code: $pipResult"
+                        if ($exitCode -eq 0) {
+                            $exitCode = $pipResult
+                        }
+                    }
+                }
+                else {
+                    Write-Failure "RUC package not found for PIP creation: $rucPackage"
+                    if ($exitCode -eq 0) {
+                        $exitCode = 1
                     }
                 }
             }

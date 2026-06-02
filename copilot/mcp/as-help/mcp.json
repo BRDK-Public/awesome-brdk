@@ -1,16 +1,17 @@
 {
   "servers": {
-     "as-help": {
-      "command": "docker",
+    "as-help": {
+      "command": "${env:APPDATA}\\as-help-mcp\\as-help-server.exe",
       "args": [
-        "run", "--rm", "-i",
-        "-v", "C:\\Program Files (x86)\\BRAutomation\\AS6\\Help-en\\Data:/data/help:ro",
-        "-v", "ashelp-data:/data/db",
-        "-e", "AS_HELP_FORCE_REBUILD=false",
-        "-e", "AS_HELP_VERSION=6",
-        "ghcr.io/brdk-github/as-help-mcp:latest"
+        "--help-root",
+        "C:\\Program Files (x86)\\BRAutomation\\AS6\\Help-en\\Data",
+        "--db-path",
+        "${env:APPDATA}\\as-help-mcp\\data\\as6\\.ashelp_lance",
+        "--metadata-dir",
+        "${env:APPDATA}\\as-help-mcp\\data\\as6\\.ashelp_metadata",
+        "--as-version",
+        "6"
       ]
-    } 
+    }
   }
 }
-

@@ -68,7 +68,7 @@ powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPat
 powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Configuration all
 
 # Build with warnings visible
-powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -ShowWarnings
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -SilenceOutput no
 
 # Build and transfer to specific PLC
 powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -Action BuildAndTransfer -TargetIP 192.168.1.100
@@ -86,13 +86,12 @@ The `invoke-as-build.ps1` script supports these parameters:
 | `-ProjectPath` | Path to project directory | Required |
 | `-Configuration` | Config name or "all" | Auto-detect |
 | `-Action` | Build, Rebuild, Clean, Transfer, BuildAndTransfer | Build |
-| `-ShowWarnings` | Display warnings in output | Off |
+| `-SilenceOutput` | Use `no` to display warnings and full build output | yes |
 | `-TargetIP` | Target IP for transfer | 127.0.0.1 |
 | `-InstallMode` | Consistent or InstallDuringTaskOperation | Consistent |
 | `-PILFile` | Custom PIL file (optional) | Auto-generate |
-| `-NoClean` | Skip cleaning before build | Off |
+| `-NoClean` | Skip cleaning before Rebuild | Off |
 | `-BuildPIP` | Generate Project Installation Package | Off |
 
 
 ---
-

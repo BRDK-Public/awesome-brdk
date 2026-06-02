@@ -36,8 +36,8 @@ powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPat
 | `-Action` | Build, Transfer, BuildAndTransfer, Clean, Rebuild | Build |
 | `-Configuration` | Configuration name, or "all" for all | Auto-detect |
 | `-TargetIP` | IP address for transfer | 127.0.0.1 |
-| `-ShowWarnings` | Display warnings in output | Off |
-| `-NoClean` | Skip cleaning before build | Off |
+| `-SilenceOutput` | Use `no` to display warnings and full build output | yes |
+| `-NoClean` | Skip cleaning before Rebuild | Off |
 | `-InstallMode` | Consistent or InstallDuringTaskOperation | Consistent |
 | `-PILFile` | Custom PIL file path | Auto-generate |
 | `-BuildPIP` | Generate Project Installation Package | Off |
@@ -76,7 +76,7 @@ powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPat
 
 ### Build with Warnings Visible
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -ShowWarnings
+powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPath . -SilenceOutput no
 ```
 
 ## Guidelines
@@ -91,7 +91,7 @@ powershell -ExecutionPolicy Bypass -File scripts/invoke-as-build.ps1 -ProjectPat
 ## Output
 
 - Errors displayed in red (always shown)
-- Warnings displayed in yellow (only with `-ShowWarnings`)
+- Warnings displayed in yellow when `-SilenceOutput no` is used
 - Build summary shows error/warning counts per configuration
 - Exit code 0 on success, non-zero on failure
 
