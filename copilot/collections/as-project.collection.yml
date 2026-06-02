@@ -13,6 +13,8 @@ items:
     kind: instruction
   - path: agents/as-project.agent.md
     kind: agent
+  - path: skills/as-cli/SKILL.md
+    kind: skill
 display:
   ordering: alpha # or "manual" to preserve order above
   show_badge: true # set to true to show collection badge

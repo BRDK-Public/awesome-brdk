@@ -177,10 +177,10 @@ function validateCollectionItems(items) {
     if (!item.kind || typeof item.kind !== "string") {
       return `Item ${i + 1} must have a kind string`;
     }
-    if (!["prompt", "instruction", "agent"].includes(item.kind)) {
+    if (!["prompt", "instruction", "agent", "skill"].includes(item.kind)) {
       return `Item ${
         i + 1
-      } kind must be one of: prompt, instruction, agent`;
+      } kind must be one of: prompt, instruction, agent, skill`;
     }
 
     // Validate file path exists
@@ -208,6 +208,12 @@ function validateCollectionItems(items) {
       return `Item ${
         i + 1
       } kind is "agent" but path doesn't end with .agent.md`;
+    }
+
+    if (item.kind === "skill" && !item.path.endsWith("SKILL.md")) {
+      return `Item ${
+        i + 1
+      } kind is "skill" but path doesn't end with SKILL.md`;
     }
 
 

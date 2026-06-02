@@ -9,7 +9,7 @@ Model Context Protocol servers for extended functionality:
 ### AS Help MCP
 
 - **[AS Help MCP in Copilot](./as-help/)** - Search and retrieve B&R Automation Studio help documentation.
-- GitHub Actions: **[as-help-mcp](https://github.com/br-automation-community/as-help-mcp/actions)**.
+- GitHub Repository: **[as-help-mcp](https://github.com/br-automation-community/as-help-mcp)**.
 
 ### BR Community MCP
 

@@ -2,13 +2,13 @@
 
 Model Context Protocol (MCP) server for searching and retrieving B&R Automation Studio help documentation.
 
-## Link to the as-help-mcp workflow
+## Link to the as-help-mcp repository
 
-- GitHub Actions: **[as-help-mcp](https://github.com/br-automation-community/as-help-mcp/actions)**
+- GitHub Repository: **[as-help-mcp](https://github.com/br-automation-community/as-help-mcp)**
 
 ## Add AS Help Configuration
 
-Download the Windows executable from the workflow artifact or release asset, place it in `%APPDATA%\as-help-mcp\`, then copy the configuration from [`mcp.json`](./mcp.json) into your MCP settings.
+Download the Windows executable from the repository release assets, place it in `%APPDATA%\as-help-mcp\`, then copy the configuration from [`mcp.json`](./mcp.json) into your MCP settings.
 
 ```jsonc
 {

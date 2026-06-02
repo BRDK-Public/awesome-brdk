@@ -1,5 +1,6 @@
 ---
 name: as-cli
+title: AS CLI
 description: Use the B&R Automation Studio CLI for headless project inspection, builds, diagnostics, and repeatable Automation Studio workflows. Use when users mention as-cli, Automation Studio CLI, project status, configuration listing, symbol lookup, build diagnostics, or scripted AS project automation.
 compatibility: Windows only. Requires B&R Automation Studio and the as-cli executable from https://github.com/br-automation-com/as-cli.
 metadata:

@@ -16,4 +16,4 @@ Curated collections of related prompts, instructions, and agents organized aroun
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
-| [AS Project Collection](../collections/as-project.md) | This collection provides prompts, instructions, and agents for the AS Project. | 5 items | as, automation-studio, structured-text, mappview |
+| [AS Project Collection](../collections/as-project.md) | This collection provides prompts, instructions, and agents for the AS Project. | 6 items | as, automation-studio, structured-text, mappview |
