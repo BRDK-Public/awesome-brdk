@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .github/hooks/scripts/as-project-info.ps1",
+        "command": "pwsh -NoProfile -File .github/hooks/scripts/as-project-info.ps1",
+        "timeout": 15
+      }
+    ]
+  }
+}

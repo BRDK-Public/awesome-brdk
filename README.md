@@ -9,6 +9,7 @@ This project serves as a central hub for shareable B&R Industrial Automation dev
 ## Contents
 
 - [Custom Agents](/copilot/docs/README.agents.md)
+- [Hooks](/copilot/docs/README.hooks.md)
 - [Instructions](/copilot/docs/README.instructions.md)
 - [Prompts](/copilot/docs/README.prompts.md)
 - [Skills](/copilot/docs/README.skills.md)

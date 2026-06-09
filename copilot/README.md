@@ -6,6 +6,7 @@ This directory contains specialized resources for GitHub Copilot to enhance B&R 
 
 - **[agents/](./agents/)** - Custom GitHub Copilot agents specialized for B&R development
 - **[collections/](./collections/)** - Curated collections of related Copilot resources
+- **[hooks/](./hooks/)** - Hook configurations and scripts for injecting project context into agent sessions
 - **[instructions/](./instructions/)** - Instruction files to guide Copilot's behavior and context
 - **[prompts/](./prompts/)** - Reusable prompt templates for common tasks
 - **[mcp/](./mcp/)** - Model Context Protocol (MCP) servers for extended functionality
@@ -23,6 +24,7 @@ This directory contains specialized resources for GitHub Copilot to enhance B&R 
 
 - [Custom Agents Guide](./docs/README.agents.md)
 - [Collections Guide](./docs/README.collections.md)
+- [Hooks Guide](./docs/README.hooks.md)
 - [Instructions Guide](./docs/README.instructions.md)
 - [Prompts Guide](./docs/README.prompts.md)
 - [Skills Guide](./docs/README.skills.md)
