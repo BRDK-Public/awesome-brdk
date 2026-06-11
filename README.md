@@ -16,12 +16,21 @@ This project serves as a central hub for shareable B&R Industrial Automation dev
 - [MCP Servers](/copilot/mcp/README.md)
 - [Tools](/tools/README.md)
 - [Documentation](/docs/README.md)
+- [AS-Libraries](#as-libraries)
 
 ## AS CLI
 
 [as-cli](https://github.com/br-automation-com/as-cli) is the B&R Automation Studio command-line tool used by the [AS CLI skill](/copilot/skills/as-cli/SKILL.md). Agents can use the skill to run `as-cli` correctly for project inspection, builds, diagnostics, transfers, simulation, PLC access, and XML configuration work.
 
 The CLI is also useful outside Copilot for DevOps and automation workflows: scripted local builds, RUC/PIP package generation, deployment checks, configuration inspection, and repeatable project diagnostics without opening Automation Studio.
+
+## AS-Libraries
+
+| Library | Repository | Online Help |
+| ------- | ---------- | ----------- |
+| BrdkPackML | [BRDK-Public/BrdkPackML](https://github.com/BRDK-Public/BrdkPackML) | [BrdkPackML Documentation](https://brdk-public.github.io/BrdkPackML/) |
+| PackMLCore | [BRDK-Public/PackMLCore](https://github.com/BRDK-Public/PackMLCore) | [PackMLCore Documentation](https://brdk-public.github.io/PackMLCore/) |
+| BrdkAlarm | [BRDK-Public/BrdkAlarm](https://github.com/BRDK-Public/BrdkAlarm) | [BrdkAlarm Documentation](https://brdk-public.github.io/BrdkAlarm/) |
 
 ## Contributing
 
